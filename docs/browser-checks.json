@@ -1,0 +1,64 @@
+{
+  "date": "2026-10-27",
+  "keyword": "お名前",
+  "checks": [
+    {
+      "hidden": 0,
+      "overlay": true,
+      "posts": 10,
+      "texts": 12,
+      "url": "https://x.com/home",
+      "view": "TeX"
+    },
+    {
+      "hidden": 0,
+      "overlay": false,
+      "posts": 11,
+      "texts": 18,
+      "url": "https://x.com/search?q=TeX%20-source%3ATwitter_for_Advertisers&src=typed_query&f=live",
+      "view": "最新"
+    },
+    {
+      "hidden": 0,
+      "overlay": true,
+      "posts": 18,
+      "url": "https://x.com/search?q=%E3%81%8A%E5%90%8D%E5%89%8D+-source%3ATwitter_for_Advertisers&src=typed_query&f=live",
+      "view": "最新",
+      "matchingBodies": 0,
+      "matchingVisible": 0
+    },
+    {
+      "hidden": 97,
+      "overlay": true,
+      "posts": 105,
+      "url": "https://x.com/search?q=%22%E3%81%8A%E5%90%8D%E5%89%8D%22+-source%3ATwitter_for_Advertisers&src=typed_query&f=top",
+      "view": "話題のポスト",
+      "matchingBodies": 97,
+      "matchingVisible": 0
+    },
+    {
+      "hidden": 1,
+      "matched": 1,
+      "matchedVisible": 0,
+      "overlay": true,
+      "posts": 12,
+      "url": "https://x.com/home",
+      "view": "フォロー中"
+    },
+    {
+      "hidden": 0,
+      "overlay": true,
+      "posts": 17,
+      "url": "https://x.com/home",
+      "view": "おすすめ"
+    },
+    {
+      "hidden": 0,
+      "matched": 0,
+      "overlay": true,
+      "posts": 11,
+      "url": "https://x.com/home",
+      "view": "TeX"
+    }
+  ]
+}

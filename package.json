@@ -1,0 +1,26 @@
+{
+  "name": "xpost-filter-plus",
+  "version": "0.1.0",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "npm run check:i18n && tsc --noEmit && vite build --outDir .build-check",
+    "test": "vitest run",
+    "package": "npm run build && node scripts/package.mjs .build-check",
+    "build:extension": "npm run check:i18n && tsc --noEmit && vite build",
+    "preview": "vite --config vite.preview.config.ts",
+    "icons": "swift scripts/generate-icons.swift",
+    "check:i18n": "node scripts/check-i18n.mjs"
+  },
+  "devDependencies": {
+    "@crxjs/vite-plugin": "^2.0.0",
+    "@types/chrome": "^0.0.326",
+    "@types/node": "^24.19.2",
+    "jsdom": "^26.0.0",
+    "typescript": "^5.8.0",
+    "vite": "^6.3.0",
+    "vitest": "^5.0.5"
+  }
+}
