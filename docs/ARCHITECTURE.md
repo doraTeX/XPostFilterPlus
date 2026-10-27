@@ -29,3 +29,6 @@ If no content script can open the dialog, the same originating tab ID is retaine
 
 
 Content startup waits while X is at the root entry path `/` or has not rendered its `main` element. The wait only reads the page state: it does not navigate, mount the overlay, or hide posts. Once X selects its own route and mounts the main view, the existing engine starts. Empty timelines and searches still start normally because posts are not a readiness condition. Disconnection cancels the wait and removes its timer and listener.
+
+
+After revoking stale frame grants, the content script registers the settings message receiver before waiting for the X view. Explicit user requests can therefore open, close, confirm, and copy through the authenticated settings dialog while filtering is not yet running. A lightweight snapshot reports that X is not ready; temporary show-all stays disabled until the engine starts. The engine attaches to the existing receiver rather than registering a second receiver.

@@ -2,7 +2,7 @@
 
 ## Automated checks
 
-The X extension has 181 passing tests covering extraction, DOM reuse, routing, temporary overrides, tooltip controls, spinner state, token accounting, provider requests, caches, key verification, error scopes, settings persistence, sync conflicts, bilingual UI, safe report rendering, and report filters.
+The X extension has 187 passing tests covering extraction, DOM reuse, routing, temporary overrides, tooltip controls, spinner state, token accounting, provider requests, caches, key verification, error scopes, settings persistence, sync conflicts, bilingual UI, safe report rendering, and report filters.
 
 `npm run check:i18n` verifies the English and Japanese catalogs and placeholders. `npm run build:extension` checks TypeScript and creates the unpacked extension. Packaging verifies manifest identity and scans for unintended local paths or unrelated endpoints.
 
@@ -86,3 +86,8 @@ The settings load-error screen sends its empty-editor close message only to the 
 All 181 tests pass. Startup tests cover waiting at `/` even when a welcome screen already has a main element, waiting for a main element after routing, starting empty home/search/list/profile/post views, and cancellation on extension disconnection without leaving timers or listeners. The startup wait does not rewrite the page DOM or URL.
 
 The reported intermittent welcome screen / missing redirect was not reproduced in the diagnostic session. As a defensive change, filtering now starts after X's own route and main view are ready. After the user reloaded the new extension build, two visits to https://x.com/ reached https://x.com/home and displayed the Following timeline, with 10 and 11 post elements respectively. The extension overlay appeared after the main view was ready. These observations do not establish the root cause of the original intermittent symptom or evaluate AI accuracy.
+
+
+## Settings during startup wait (2026-10-27)
+
+All 187 tests and 317 bilingual resource keys pass. The settings receiver is available during the entry-route wait after stale grants are revoked. Tests cover opening and closing settings, confirmation and copying before engine startup, rejecting other senders, localized waiting snapshots, preventing temporary show-all during initialization, enabling it after startup, reusing a single receiver, and removing it on disconnection. The manifest now links to the published GitHub repository. The accidentally generated ignored .build-check/y-dummy.tgz was removed. This audit follow-up used automated checks; it has not been rechecked in the installed Chrome extension.
