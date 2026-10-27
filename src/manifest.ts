@@ -8,6 +8,7 @@ export default defineManifest({
  options_page:'src/dashboard/index.html',
  background:{service_worker:'src/background/index.ts',type:'module'},
  content_scripts:[{matches:['https://x.com/*','https://twitter.com/*'],js:['src/content/index.ts'],run_at:'document_idle'}],
+ web_accessible_resources:[{resources:['src/dashboard/index.html'],matches:['https://x.com/*','https://twitter.com/*']}],
  permissions:['storage','alarms'],
  host_permissions:['https://x.com/*','https://twitter.com/*'],
  optional_host_permissions:['https://api.typesafe.ai/*','https://api.openai.com/*','https://api.cloudflare.com/*']

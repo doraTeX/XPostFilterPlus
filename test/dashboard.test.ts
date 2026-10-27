@@ -20,6 +20,19 @@ it('キャッシュ消去の確認でキャンセルし、承認時だけ消去�
  confirm.mockReturnValue(true);click(root,'判定キャッシュを消去');await vi.waitFor(()=>expect(api.call.mock.calls.some(c=>c[0]==='CLEAR')).toBe(true));expect(root.textContent).toContain('判定キャッシュを消去しました。');
 });
 it('設定JSONには認証情報を含めず、通常設定だけを保存する',()=>{const settings=validate({...defaults,local:{key:'secret'},key:'secret',rows:['語']});expect(JSON.stringify(settings)).not.toContain('secret');expect(settings.rows).toEqual(['語']);});
+it('閉じる操作は保存中の追加入力も保存し終えてから閉じる',async()=>{
+ const {root,api}=await setup(),original=api.call.getMockImplementation()!;let release!:()=>void,first=true;
+ api.call.mockImplementation(async(type,data)=>{if(type==='SAVE'&&first){first=false;await new Promise<void>(r=>release=r);}return original(type,data);});
+ const area=root.querySelector('textarea')!;area.value='最初';area.dispatchEvent(new Event('input',{bubbles:true}));const closing=dashboard!.close();
+ await vi.waitFor(()=>expect(release).toBeTruthy());area.value='続けて入力';area.dispatchEvent(new Event('input',{bubbles:true}));release();await closing;
+ expect(api.call.mock.calls.filter(c=>c[0]==='SAVE').at(-1)![1].settings.rows).toEqual(['続けて入力']);expect(api.call.mock.calls.at(-1)![0]).toBe('CLOSE');
+});
+it('閉じる直前の保存に失敗した場合は入力内容を残して閉じない',async()=>{
+ const {root,api}=await setup(),original=api.call.getMockImplementation()!;
+ api.call.mockImplementation(async(type,data)=>{if(type==='SAVE')throw Error('保存失敗');return original(type,data);});
+ const area=root.querySelector('textarea')!;area.value='残す内容';area.dispatchEvent(new Event('input',{bubbles:true}));
+ await expect(dashboard!.close()).rejects.toThrow('保存失敗');expect(area.value).toBe('残す内容');expect(api.call.mock.calls.some(c=>c[0]==='CLOSE')).toBe(false);expect(root.querySelector('.status.error')!.textContent).toBe('保存失敗');
+});
 it('定期更新で詳細行を取得せず、Console操作時には最新の行を取得する',async()=>{
  const {root,api}=await setup();await dashboard!.refreshPage();
  expect(api.call.mock.calls.filter(c=>c[0]==='PAGE').every(c=>c[1]?.details!==true)).toBe(true);
