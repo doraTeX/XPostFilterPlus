@@ -12,7 +12,7 @@ export async function start(api){
  const records=new Map(),observed=new Map(),released=new Set(),inflight=new Map(),results=new Map(),normalizedPosts=new Map(),keywordDecisions=new Map();
  let keywordSignature='';
  const style=document.createElement('style');style.textContent=`[${HIDE}]{display:none!important}`;document.head.append(style);
- const overlay=createOverlay({open:()=>{void api.call('OPEN').catch(showConnectionError);},release:reason=>{if(connectionLost||disposed)return;released.has(reason)?released.delete(reason):released.add(reason);scan();}}),root=overlay.root,host=overlay.host;
+ const overlay=createOverlay({pause:()=>{pause();},open:()=>{void api.call('OPEN').catch(showConnectionError);},release:reason=>{if(connectionLost||disposed)return;released.has(reason)?released.delete(reason):released.add(reason);scan();}}),root=overlay.root,host=overlay.host;
  function pause(){if(connectionLost||disposed)return snapshot();paused=!paused;scan();return snapshot();}
  function showConnectionError(){
   if(disposed||connectionLost)return;

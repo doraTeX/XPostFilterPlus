@@ -1,5 +1,6 @@
 import {it,expect,vi,afterEach} from 'vitest';
 import {mountDashboard} from '../src/dashboard/ui';
+import {start} from '../src/content/engine.js';
 import {defaults,validate} from '../src/shared/settings';
 let dashboard:Awaited<ReturnType<typeof mountDashboard>>|undefined;
 afterEach(()=>{dashboard?.dispose();dashboard=undefined;document.body.replaceChildren();vi.restoreAllMocks();});
@@ -58,3 +59,17 @@ it('未設定ならAIがOFFでもブロック全体と状況欄をエラー表�
 it('無効なキーの全体エラーを上部と状況欄に表示する',async()=>{const state:any={settings:{...defaults,aiEnabled:true},local:{provider:'jev',profiles:{jev:{key:'invalid'}}},ai:{ready:true,stopped:true,message:'HTTP 401',advice:'キーを入力し直してください。'},history:[]};const root=document.createElement('div');document.body.append(root);dashboard=await mountDashboard(root,{call:async()=>structuredClone(state)});expect(root.querySelector('.ai-section.unavailable')).not.toBeNull();expect(root.querySelector('.error-notice')!.textContent).toContain('HTTP 401');expect(root.querySelector('.error-notice')!.textContent).toContain('キーを入力し直してください。');});
 it('重複整理は行ごとのcaseとrateを保ち、元に戻せる',async()=>{const {root}=await setup();const area=root.querySelector('textarea')!;area.value='ABC\nabc\nABC||case:1\nABC||rate:90';click(root,'重複を整理');expect(area.value).toBe('ABC\nABC||case:1\nABC||rate:90');click(root,'並べ替え・整理を元に戻す');expect(area.value).toBe('ABC\nabc\nABC||case:1\nABC||rate:90');});
 it('英語でも同じ設定項目と操作を表示する',async()=>{document.documentElement.lang='en';try{const {root}=await setup();expect(root.textContent).toContain('AI exclusion classification');expect(root.textContent).toContain('Restore from history');expect(root.textContent).not.toContain('本文を取得');const option=root.querySelector('[aria-label="AI provider"]') as HTMLSelectElement;option.value='openai';option.dispatchEvent(new Event('change',{bubbles:true}));await dashboard!.save();expect(root.querySelector('[aria-label="OpenAI API key"]')).not.toBeNull();}finally{document.documentElement.lang='ja';}});
+
+it('設定画面の一時表示とチップのショートカットが同じ状態を使い、双方の表示を更新する',async()=>{
+ const original=Element.prototype.attachShadow;vi.spyOn(Element.prototype,'attachShadow').mockImplementation(function(this:Element,options){return original.call(this,{...options,mode:'open'});});
+ document.body.innerHTML='<article role="article"><a href="/a/status/123"><time>今</time></a><div data-testid="tweetText">対象の本文</div></article>';
+ const state={settings:{...defaults,rows:['対象']},local:{provider:'jev',profiles:{}},ai:{ready:false,stopped:false,blockedUntil:0},history:[],provider:'jev',revision:1};
+ const engine=await start({call:async(type:string)=>type==='GET'?structuredClone(state):undefined});
+ try{
+  const root=document.createElement('div');document.body.append(root);dashboard=await mountDashboard(root,{call:async(type)=>type==='PAGE'||type==='PAUSE'?{...(type==='PAUSE'?engine.pause():engine.snapshot(false)),connected:true,tabId:1}:structuredClone(state)});
+  await dashboard.refreshPage();click(root,'一時的に全件表示');await vi.waitFor(()=>expect(root.querySelector('.footer button')!.textContent).toBe('除外を再開'));
+  const pause=engine.root.querySelector('[data-pause-control]')!.shadowRoot!.querySelector('button')!;
+  expect(pause.getAttribute('aria-pressed')).toBe('true');expect(document.querySelector('[data-xpf-hidden]')).toBeNull();
+  pause.click();await dashboard.refreshPage();expect(root.querySelector('.footer button')!.textContent).toBe('一時的に全件表示');expect(pause.getAttribute('aria-pressed')).toBe('false');expect(document.querySelector('[data-xpf-hidden]')).not.toBeNull();
+ }finally{engine.dispose();}
+});

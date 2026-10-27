@@ -1157,5 +1157,11 @@
   },
   "reportAuthor": {
     "message": "Author"
+  },
+  "pauseAll": {
+    "message": "Pause all filtering"
+  },
+  "resumeAll": {
+    "message": "Resume filtering"
   }
 }

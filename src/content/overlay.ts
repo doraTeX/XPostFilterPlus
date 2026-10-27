@@ -1,5 +1,6 @@
 import {t} from '../shared/i18n';
-type Options={open:()=>void;release:(reason:string)=>void};
+import {createPauseControl} from './pause-control.js';
+type Options={open:()=>void;pause:()=>void;release:(reason:string)=>void};
 // Y!News Filter Plusのチップ・ホバータグ・進捗・回転矢印のスタイルと挙動を移植。
 export function createOverlay(options:Options){
  const host=document.createElement('div');host.id='xpf-overlay';document.documentElement.append(host);const root=host.attachShadow({mode:'closed'});
@@ -16,8 +17,14 @@ export function createOverlay(options:Options){
  </style><div id="wrap"><button id="badge" type="button"></button><span id="busy" role="status" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 10a8 8 0 1 0-2 8M20 4v6h-6" fill="none" stroke="currentColor" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round"/></svg></span><button id="error" hidden><svg viewBox="0 0 18 18" width="18" height="18" aria-hidden="true"><circle cx="9" cy="9" r="9" fill="#D93025"/><path d="M6 6L12 12M12 6L6 12" stroke="white" stroke-width="2.4" stroke-linecap="round"/></svg></button><div id="progress" hidden><div class="progress" role="status"></div></div><div id="tip"><div id="words"></div></div></div>`;
  const badge=root.querySelector<HTMLButtonElement>('#badge')!,error=root.querySelector<HTMLButtonElement>('#error')!,busy=root.querySelector<HTMLElement>('#busy')!,wrap=root.querySelector<HTMLElement>('#wrap')!,progress=root.querySelector<HTMLElement>('#progress')!,tip=root.querySelector<HTMLElement>('#tip')!,words=root.querySelector<HTMLElement>('#words')!;
  badge.onclick=error.onclick=options.open;busy.setAttribute('aria-label',t('chipBusy'));words.setAttribute('aria-label',t('hiddenWords'));
+ const pause=createPauseControl({toggle:options.pause,pauseLabel:t('pauseAll'),resumeLabel:t('resumeAll')});wrap.append(pause.host);
+ let hovered=false,showChip=true;
+ const showPause=()=>pause.setVisible(showChip&&(hovered||root.activeElement!==null));
+ wrap.addEventListener('mouseenter',()=>{hovered=true;showPause();});wrap.addEventListener('mouseleave',()=>{hovered=false;showPause();});
+ wrap.addEventListener('focusin',showPause);wrap.addEventListener('focusout',()=>queueMicrotask(showPause));
  let previous='';
  function update(data:{count:number;enabled:boolean;paused:boolean;show:boolean;running:boolean;showProgress:boolean;progress:string;error:string;words:[string,number][];released:Set<string>;reloadRequired?:boolean}){
+  pause.update(data.paused,!!data.reloadRequired);showChip=data.show;showPause();
   const label=data.reloadRequired?t('reloadRequiredShort'):!data.enabled?t('filterOff'):data.paused?t('temporarilyShowing'):t('hiddenCount',[data.count]);badge.textContent=label;badge.title=data.reloadRequired?t('reloadRequired'):data.error?t('chipErrorTitle',[data.error]):t('chipTitle');badge.setAttribute('aria-label',data.reloadRequired?t('reloadRequired'):t('chipLabel',[label]));badge.hidden=!data.show;tip.hidden=!data.show;
   wrap.hidden=!data.show&&!(data.running&&data.showProgress);busy.hidden=!data.show||!data.running||!!data.error;error.hidden=!!data.reloadRequired||!data.show||!data.error;error.title=data.error;error.setAttribute('aria-label',t('chipErrorTitle',[data.error]));progress.hidden=!data.running||!data.showProgress;progress.querySelector('.progress')!.textContent=data.progress;tip.style.top=data.running&&data.showProgress?`calc(100% + ${progress.offsetHeight}px)`:'100%';
   const signature=JSON.stringify([data.words,[...data.released],!!data.reloadRequired]);if(signature===previous)return;previous=signature;

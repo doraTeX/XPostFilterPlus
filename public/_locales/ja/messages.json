@@ -1157,5 +1157,11 @@
   },
   "reportAuthor": {
     "message": "投稿者"
+  },
+  "pauseAll": {
+    "message": "すべての機能を一時停止"
+  },
+  "resumeAll": {
+    "message": "機能を再開"
   }
 }

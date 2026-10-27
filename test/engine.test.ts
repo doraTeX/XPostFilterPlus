@@ -144,3 +144,17 @@ it('問い合わせ中に拡張が無効化されても、finallyから監視処
  try{engine=await start(api);await settle();reject(Object.assign(Error('Extension context invalidated.'),{kind:'disconnected'}));await settle();const calls=api.call.mock.calls.length;await vi.advanceTimersByTimeAsync(15000);expect(api.call).toHaveBeenCalledTimes(calls);expect(engine.root.querySelector('#badge')?.textContent).toBe('ページを再読み込み');
  }finally{engine?.dispose();engine=undefined;vi.useRealTimers();}
 });
+
+it('チップの一時停止でキーワード・AI除外をまとめて解除し、再生で同じ設定を再適用する',async()=>{
+ const original=Element.prototype.attachShadow;vi.spyOn(Element.prototype,'attachShadow').mockImplementation(function(this:Element,options){return original.call(this,{...options,mode:'open'});});
+ const cell=fixture('セール'),{api,state}=mock(['セール'],true);
+ document.body.insertAdjacentHTML('beforeend','<article role="article"><a href="/b/status/789"><time>今</time></a><div data-testid="tweetText">AI判定本文</div></article>');
+ engine=await start(api);await settle();expect(document.querySelectorAll('[data-xpf-hidden]')).toHaveLength(2);
+ const wrap=engine.root.querySelector('#wrap')!,host=wrap.querySelector<HTMLElement>('[data-pause-control]')!,button=host.shadowRoot!.querySelector('button')!,saved=structuredClone(state.settings);
+ expect(host.hidden).toBe(true);wrap.dispatchEvent(new Event('mouseenter'));expect(host.hidden).toBe(false);
+ button.click();expect(engine.snapshot().paused).toBe(true);expect(document.querySelectorAll('[data-xpf-hidden]')).toHaveLength(0);expect(button.getAttribute('aria-pressed')).toBe('true');expect(button.title).toBe('機能を再開');
+ const calls=api.call.mock.calls.filter(c=>c[0]==='DECIDE').length;engine.scan();await settle();expect(api.call.mock.calls.filter(c=>c[0]==='DECIDE')).toHaveLength(calls);
+ button.click();expect(cell.hasAttribute('data-xpf-hidden')).toBe(true);expect(document.querySelectorAll('[data-xpf-hidden]')).toHaveLength(2);expect(button.getAttribute('aria-pressed')).toBe('false');
+ engine.pause();expect(button.getAttribute('aria-pressed')).toBe('true');engine.pause();expect(button.getAttribute('aria-pressed')).toBe('false');expect(state.settings).toEqual(saved);
+ wrap.dispatchEvent(new Event('mouseleave'));expect(host.hidden).toBe(true);
+});
