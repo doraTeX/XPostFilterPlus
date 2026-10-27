@@ -1151,5 +1151,8 @@
   },
   "keywordMatchedVisible": {
     "message": "Matches a keyword, but is visible because filtering is off or all posts are temporarily shown."
+  },
+  "reportTooLarge": {
+    "message": "The decision report is too large to open. Reduce the number of conditions and try again, or copy the details as TSV."
   }
 }

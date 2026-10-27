@@ -12,6 +12,8 @@ const controller=new Controller(chrome.storage.local,async(url:string,options:Re
 },chrome.permissions);
 const syncStore=new SyncStore(fn=>controller.settingsTransaction(fn));
 async function reconcileSync(){await syncStore.reconcile();}
+let reportsWriting:Promise<unknown>=Promise.resolve();
+function reportTransaction<T>(run:()=>Promise<T>){const next=reportsWriting.then(run,run);reportsWriting=next.catch(()=>{});return next;}
 
 async function xTabs(){return (await chrome.tabs.query({url:['https://x.com/*','https://twitter.com/*']})).filter(t=>t.id!==undefined);}
 async function pageData(tabId?:number,type='SNAPSHOT',details=false){
@@ -47,14 +49,18 @@ async function handle(m:any,sender:chrome.runtime.MessageSender){
  if(m.type==='SYNC'){await syncStore.queue(()=>reconcileSync());return syncStore.state();}
  if(m.type==='SYNC_ENABLED'){if(typeof m.enabled!=='boolean')throw Error(t("m_495dc1760a51"));await syncStore.queue(async()=>{await syncStore.setEnabled(m.enabled);await reconcileSync();});return syncStore.state();}
  if(m.type==='SYNC_RESOLVE'){await syncStore.queue(async()=>{await syncStore.resolve(m.doc);});return syncStore.state();}
- if(m.type==='REPORT'){
-  const data=await pageData(m.tabId,'SNAPSHOT',true),id=crypto.randomUUID();
-  const all=await chrome.storage.session.get(null),reports=Object.keys(all).filter(k=>k.startsWith('xpf_report:'));
-  if(reports.length>=5)await chrome.storage.session.remove(reports.slice(0,reports.length-4));
-  await chrome.storage.session.set({['xpf_report:'+id]:{rows:data.rows,time:Date.now(),url:data.url||'',title:data.title||''}});
+ if(m.type==='REPORT')return reportTransaction(async()=>{
+  const data=await pageData(m.tabId,'SNAPSHOT',true),id=crypto.randomUUID(),key='xpf_report:'+id;
+  const report={rows:data.rows,time:Date.now(),url:data.url||'',title:data.title||''},bytes=(value:unknown)=>new TextEncoder().encode(JSON.stringify(value)).length,limit=6*1024*1024;
+  if(bytes({[key]:report})>limit)throw Error(t('reportTooLarge'));
+  const all=await chrome.storage.session.get(null),reports=Object.keys(all).filter(k=>k.startsWith('xpf_report:')).sort((a,b)=>(all[a].time||0)-(all[b].time||0)),future={...all,[key]:report},remove:string[]=[];
+  // 再読み込み用の表は最新5件・合計6MBまで。UUIDの順序を作成日時として扱わない。
+  while(reports.length>=5||bytes(future)>limit){const oldest=reports.shift();if(!oldest)break;delete future[oldest];remove.push(oldest);}
+  if(remove.length)await chrome.storage.session.remove(remove);
+  await chrome.storage.session.set({[key]:report});
   await chrome.tabs.create({url:chrome.runtime.getURL('src/report/index.html')+'?id='+id});return null;
- }
- if(m.type==='REPORT_DATA'){if(typeof m.id!=='string'||!/^[a-f0-9-]{36}$/.test(m.id))throw Error(t("m_7428ab5b0e53"));const key='xpf_report:'+m.id,data=(await chrome.storage.session.get(key))[key];if(!data)throw Error(t("m_28e53e5b1756"));await chrome.storage.session.remove(key);return data;}
+ });
+ if(m.type==='REPORT_DATA'){if(typeof m.id!=='string'||!/^[a-f0-9-]{36}$/.test(m.id))throw Error(t("m_7428ab5b0e53"));const key='xpf_report:'+m.id,data=(await chrome.storage.session.get(key))[key];if(!data)throw Error(t("m_28e53e5b1756"));return data;}
  if(m.type==='PERMISSION'){const granted=await chrome.permissions.request({origins:[connectionOrigin(m.provider)]});if(granted&&(await controller.local()).provider===m.provider)await controller.verify();return granted;}
  throw Error(t("m_da25fe15132f"));
 }

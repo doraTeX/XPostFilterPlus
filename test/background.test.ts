@@ -21,6 +21,24 @@ it('定期取得は軽量で、明示操作でだけ詳細を要求する',async
  expect(chrome.tabs.sendMessage).toHaveBeenLastCalledWith(1,{type:'SNAPSHOT',details:false});
  expect((await send({type:'PAGE',tabId:1,details:true})).rows[0].postId).toBe('123');
 });
+it('判定表のデータを再読み込みでも保持し、直近5件より古いものを整理する',async()=>{
+ await send({type:'REPORT',tabId:1});const first=Object.keys(session)[0].slice('xpf_report:'.length);
+ const initial=await send({type:'REPORT_DATA',id:first});expect(initial.rows[0].text).toBe('ポスト本文');
+ expect(await send({type:'REPORT_DATA',id:first})).toEqual(initial);
+ for(let i=0;i<5;i++)await send({type:'REPORT',tabId:1});
+ expect(Object.keys(session)).toHaveLength(5);await expect(send({type:'REPORT_DATA',id:first})).rejects.toThrow();
+});
+it('UUIDではなく作成時刻の古い表を整理し、同時に表を開いても上限を守る',async()=>{
+ for(let i=0;i<5;i++)session['xpf_report:'+String(5-i)]={time:i};
+ await Promise.all([send({type:'REPORT',tabId:1}),send({type:'REPORT',tabId:1})]);
+ expect(Object.keys(session)).toHaveLength(5);expect(session['xpf_report:5']).toBeUndefined();expect(session['xpf_report:4']).toBeUndefined();expect(session['xpf_report:1']).toBeTruthy();
+});
+it('大きすぎる表では保存済みの表を壊さず、対処方法を表示する',async()=>{
+ await send({type:'REPORT',tabId:1});const before=structuredClone(session);
+ vi.mocked(chrome.tabs.sendMessage).mockResolvedValueOnce({rows:[{text:'字'.repeat(2200000)}]});
+ await expect(send({type:'REPORT',tabId:1})).rejects.toThrow('TSVでコピー');
+ expect(session).toEqual(before);
+});
 it('同期アラームから送信失敗を再試行する',async()=>{
  vi.spyOn(chrome.storage.sync,'set').mockRejectedValueOnce(Error('network'));
  expect((await send({type:'SYNC_ENABLED',enabled:true})).pending).toBe(true);
