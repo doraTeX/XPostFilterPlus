@@ -18,7 +18,10 @@ let dashboard:Awaited<ReturnType<typeof mountDashboard>>|undefined;
 async function requestClose(){
  if(dashboard)return dashboard.close();
  // 認証やGET自体が失敗した場合も、未作成の編集画面からは退出できる。
- if(embedded)parent.postMessage({type:'XPF_CLOSE_EMPTY'},'*');
+ if(embedded){
+  const origin=location.ancestorOrigins?.[0];
+  if(origin==='https://x.com'||origin==='https://twitter.com')parent.postMessage({type:'XPF_CLOSE_EMPTY'},origin);
+ }
  else await invoke('CLOSE');
 }
 const unbindClose=bindCloseEvents(requestClose,embedded);
