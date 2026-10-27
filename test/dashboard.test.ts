@@ -96,3 +96,11 @@ it('Xの画面準備待ちでは一時表示を無効にし、準備後の定期
  const pause=Array.from(root.querySelectorAll('button')).find(b=>b.textContent==='一時的に全件表示')!;expect(pause.disabled).toBe(true);
  initializing=false;await dashboard!.refreshPage();expect(pause.disabled).toBe(false);
 });
+
+it('デバッグ継続出力は通常のSAVEに混ぜず、元のタブの専用操作で切り替える',async()=>{
+ const {root,api}=await setup();await dashboard!.save();api.call.mockClear();const original=api.call.getMockImplementation()!;let enabled=false;
+ api.call.mockImplementation(async(type,data)=>type==='PAGE'?{connected:true,tabId:1,debugEnabled:enabled,paused:false}:type==='DEBUG_SET'?(enabled=data!.enabled,{connected:true,tabId:1,debugEnabled:enabled,paused:false}):original(type,data));
+ for(let i=0;i<10;i++)await Promise.resolve();await dashboard!.refreshPage();const field=root.querySelector<HTMLInputElement>('[aria-label="Consoleに継続出力（デバッグ用）"]')!;expect(field.checked).toBe(false);expect(field.disabled).toBe(false);
+ field.click();await vi.waitFor(()=>expect(field.disabled).toBe(false));expect(field.checked).toBe(true);await dashboard!.save();expect(api.call).toHaveBeenCalledWith('DEBUG_SET',{tabId:1,enabled:true});expect(api.call.mock.calls.filter(c=>c[0]==='SAVE')).toHaveLength(0);
+ await dashboard!.refreshPage();expect(field.checked).toBe(true);
+});

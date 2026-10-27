@@ -11,7 +11,7 @@ export async function start(api){
  let state=await api.call('GET'),settings=state.settings||{...defaults},epoch=0,active=0,disposed=false,connectionLost=false,scanTimer=0,stopListening=()=>{},stopDisconnectListening=()=>{},paused=false,page=crypto.randomUUID(),url=location.href,view=viewKey(),checks=0,limited=false,stats=freshStats(),rules=[];
  const processingTraces=new Map(),displayTraces=new Map();
  const records=new Map(),observed=new Map(),released=new Set(),inflight=new Map(),results=new Map(),normalizedPosts=new Map(),keywordDecisions=new Map();
- let keywordSignature='';
+ let keywordSignature='',debugEnabled=state.debugEnabled===true;
  const style=document.createElement('style');style.textContent=`[${HIDE}]{display:none!important}`;document.head.append(style);
  const overlay=createOverlay({pause:()=>{pause();},open:()=>{void api.call('OPEN').catch(showConnectionError);},release:reason=>{if(connectionLost||disposed)return;released.has(reason)?released.delete(reason):released.add(reason);scan();}}),root=overlay.root,host=overlay.host;
  function pause(){if(connectionLost||disposed)return snapshot();paused=!paused;scan();return snapshot();}
@@ -91,9 +91,10 @@ export async function start(api){
    }if(rows.length>=2000)break;
   }
   const message=systemError()||(!settings.enabled?t("m_12161073047e"):paused?t("m_f67d4cbf9d89"):!settings.aiEnabled?t("m_34903a0a9845"):!settings.aiConditions.length?t("m_211a77b7c060"):!summary.target?t("m_a8aa28cec8dd"):limited?t("m_b2826f37e679"):active?t("m_c2c7eedd98ad",[active]):summary.pending?t("m_aceb4c0ecaf7"):t("m_4dfaf77eacf0"));
-  return {url,title:document.title,page,paused,hiddenWords:[...hiddenWords],summary,stats:{...stats},active,message,error:systemError(),positive:[...positive],negative:[...negative],rows,diagnostics};
+  return {url,title:document.title,page,paused,debugEnabled,hiddenWords:[...hiddenWords],summary,stats:{...stats},active,message,error:systemError(),positive:[...positive],negative:[...negative],rows,diagnostics};
  }
  let lastLog='',lastBadge='';
+ function setDebug(enabled){debugEnabled=enabled===true;lastLog='';render();return snapshot(false);}
  function render(){
   if(!connected())return;
   let hidden=0;const counts=new Map();
@@ -101,7 +102,7 @@ export async function start(api){
   for(const reason of released)if(!counts.has(reason))counts.set(reason,0);
   overlay.update({count:hidden,enabled:settings.enabled,paused,show:settings.showPageChip!==false,running:active>0,showProgress:settings.aiShowProgress,progress:t('chipProgress',[stats.success+stats.failed+stats.refused,checks]),error:systemError(),words:[...counts],released});
   const badgeState=JSON.stringify([hidden,systemError()]);if(lastBadge!==badgeState){lastBadge=badgeState;void api.call('BADGE',{count:hidden,error:systemError()}).catch(error=>{lastBadge='';if(isDisconnectedError(error)||api.isConnected?.()===false)showConnectionError();});}
-  if(settings.aiDebug){const report=snapshot(),key=JSON.stringify([report.rows,report.diagnostics]);if(key!==lastLog){lastLog=key;console.table(reportRecords(report.rows,report.diagnostics));}}
+  if(debugEnabled){const report=snapshot(),key=JSON.stringify([report.rows,report.diagnostics]);if(key!==lastLog){lastLog=key;console.table(reportRecords(report.rows,report.diagnostics));}}
  }
  function schedule(){if(!connected()||scanTimer)return;scanTimer=setTimeout(()=>{scanTimer=0;scan();},120);}
  function scan(){
@@ -147,13 +148,13 @@ export async function start(api){
   if(JSON.stringify([next.settings,next.provider,next.revision])!==JSON.stringify([settings,state.provider,state.revision])){epoch++;results.clear();processingTraces.clear();checks=0;limited=false;released.clear();}
   const wasPaused=state.ai.stopped||Date.now()<(state.ai.blockedUntil||0),nowPaused=next.ai.stopped||Date.now()<(next.ai.blockedUntil||0);
   if(wasPaused&&!nowPaused){epoch++;results.clear();processingTraces.clear();checks=0;limited=false;}
-  state=next;settings=next.settings;scan();
+  if(debugEnabled!==(next.debugEnabled===true))lastLog='';debugEnabled=next.debugEnabled===true;state=next;settings=next.settings;scan();
  }catch{showConnectionError();}}
  const observer=new MutationObserver(changes=>{if(changes.some(r=>!host.contains(r.target)&&r.target!==style))schedule();});
  observer.observe(document.body,{childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:['href','data-testid','aria-selected']});
  const onScroll=()=>schedule(),onFocus=()=>void refresh();window.addEventListener('scroll',onScroll,{passive:true});window.addEventListener('focus',onFocus);
  const timer=setInterval(()=>{void refresh();},5000);
- stopListening=api.listen?.(m=>m?.type==='SNAPSHOT'?snapshot(m.details!==false):m?.type==='PAUSE'?pause():void refresh())||(()=>{});
+ stopListening=api.listen?.(m=>m?.type==='SNAPSHOT'?snapshot(m.details!==false):m?.type==='PAUSE'?pause():m?.type==='DEBUG_CHANGED'?setDebug(m.enabled):void refresh())||(()=>{});
  stopDisconnectListening=api.onDisconnected?.(showConnectionError)||(()=>{});
  scan();
  return {scan,refresh,snapshot,pause,root,dispose(){disposed=true;epoch++;observer.disconnect();clearTimeout(scanTimer);clearInterval(timer);window.removeEventListener('scroll',onScroll);window.removeEventListener('focus',onFocus);stopListening();stopDisconnectListening();for(const r of records.values())r.container?.removeAttribute(HIDE);processingTraces.clear();displayTraces.clear();overlay.dispose();style.remove();}};

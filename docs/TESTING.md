@@ -2,11 +2,13 @@
 
 ## Automated checks
 
-The X extension has 199 passing tests covering extraction, DOM reuse, routing, temporary overrides, tooltip controls, spinner state, token accounting, provider requests, caches, key verification, error scopes, settings persistence, sync conflicts, bilingual UI, safe report rendering, and report filters.
+The X extension has 207 passing tests covering extraction, DOM reuse, routing, temporary overrides, tooltip controls, spinner state, token accounting, provider requests, caches, key verification, error scopes, settings persistence, sync conflicts, bilingual UI, safe report rendering, and report filters.
 
 `npm run check:i18n` verifies the English and Japanese catalogs and placeholders. `npm run build:extension` checks TypeScript and creates the unpacked extension. Packaging verifies manifest identity and scans for unintended local paths or unrelated endpoints.
 
 The Y!News Filter Plus provider-label correction has 47 passing engine tests, including newly added checks for disabled AI, unrequested rows, requests in progress, and cached results.
+
+Console streaming tests cover same-tab reloads and worker recreation, new-tab defaults, tab-close cleanup, sender-bound updates, and exclusion of legacy aiDebug values from settings and sync. These checks use mocked Chrome APIs.
 
 ## Chrome checks — 2026-10-27
 

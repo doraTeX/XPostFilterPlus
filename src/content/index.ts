@@ -12,7 +12,7 @@ function handleMessage(m:any,sender:chrome.runtime.MessageSender,respond:(data:a
  if(m.type==='OPEN_SETTINGS'){try{respond(editor.open(m.url));}catch(error){respond({opened:false,error:(error as Error).message});}return;}
  if(m.type==='CLOSE_SETTINGS'){respond(editor.close(m.token));return;}
  if(m.type==='CONFIRM_SETTINGS'||m.type==='COPY_SETTINGS'){void editor.action(m.type,m.token,m.value).then(respond);return true;}
- if(['REFRESH','SNAPSHOT','PAUSE'].includes(m.type)){
+ if(['REFRESH','SNAPSHOT','PAUSE','DEBUG_CHANGED'].includes(m.type)){
   const result=filterHandler?filterHandler(m):waitingSnapshot();if(m.type!=='REFRESH')respond(result);
  }
 }

@@ -412,7 +412,7 @@
     "message": "設定画面のConsoleに判定詳細を出力しました。"
   },
   "m_e93e0a45a7d3": {
-    "message": "Consoleに継続出力"
+    "message": "Consoleに継続出力（デバッグ用）"
   },
   "m_a35571a7e224": {
     "message": "判定詳細をTSVでコピー"
@@ -1317,5 +1317,8 @@
   },
   "detailSharedSource": {
     "message": "共有した問い合わせ"
+  },
+  "debugSessionHelp": {
+    "message": "通常はOFFで使用してください。ONにすると動作が重くなることがあります。同じタブの再読み込みでは維持し、タブを閉じるとOFFになります。Chrome同期・設定の書き出しには含めません。"
   }
 }

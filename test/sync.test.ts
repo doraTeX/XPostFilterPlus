@@ -1,7 +1,7 @@
 import {beforeEach,afterEach,it,expect,vi} from 'vitest';
 import {webcrypto} from 'node:crypto';
 import {defaults,validate,SETTINGS,LOCAL,CACHE} from '../src/shared/settings';
-import {newDoc,heads,encodeDoc,decodeRemote} from '../src/shared/sync';
+import {newDoc,heads,encodeDoc,decodeRemote,digest} from '../src/shared/sync';
 import {SyncStore} from '../src/background/sync-store';
 import {Controller} from '../src/background/controller.js';
 let local:Record<string,any>,remote:Record<string,any>;
@@ -38,4 +38,10 @@ it('編集と同期用の変更記録を同じ保存操作に含め、並行し�
  const parent=(await store.state()).doc!;remote=await encodeDoc(newDoc(settings('remote'),'other',[parent]),'other');
  await Promise.all([controller.save(settings('edited'),{},undefined,'editor-save',next=>store.recordLocal(next)),store.queue(()=>store.reconcile())]);
  expect(local[SETTINGS].rows).toEqual(['edited']);expect((await store.state()).conflicts).toHaveLength(2);
+});
+
+it('旧aiDebug設定を復元せず、Chrome同期へも送信しない',async()=>{
+ const legacy={...defaults,rows:['条件'],aiDebug:true};expect(validate(legacy)).not.toHaveProperty('aiDebug');
+ const raw=JSON.stringify({schema:1,clock:{old:1},settings:legacy});const decoded=await decodeRemote({'xpf:old:0':raw,'xpf:old:meta':{count:1,hash:await digest(raw)}});expect(decoded[0].settings).not.toHaveProperty('aiDebug');
+ const items=await encodeDoc({schema:1,clock:{old:1},settings:legacy},'old');expect(JSON.stringify(items)).not.toContain('aiDebug');
 });

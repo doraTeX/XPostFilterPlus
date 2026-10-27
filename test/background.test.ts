@@ -108,3 +108,19 @@ it('判定表の診断本文・処理ログを一度だけ保存し、再読み�
  await send({type:'REPORT',tabId:1});const key=Object.keys(session).find(k=>k.startsWith('xpf_report:'))!,id=key.slice('xpf_report:'.length);
  expect((await send({type:'REPORT_DATA',id})).diagnostics).toEqual(diagnostics);expect((await send({type:'REPORT_DATA',id})).diagnostics.p.sentText).toBe('送信本文');
 });
+
+it('デバッグ出力は同一タブのリロードで維持し、別タブと通常設定へ漏らさない',async()=>{
+ local.xpf_settings_v1={...(await send({type:'GET'},pageSender)).settings,aiDebug:true};
+ expect((await send({type:'GET'},pageSender)).debugEnabled).toBe(false);
+ await send({type:'DEBUG_SET',enabled:true,tabId:999},pageSender);expect(session['xpf_debug:1']).toBe(true);expect(session['xpf_debug:999']).toBeUndefined();
+ await send({type:'PAGE_READY'},pageSender);expect((await send({type:'GET'},pageSender)).debugEnabled).toBe(true);
+ expect((await send({type:'GET'},{...pageSender,tab:{id:2,url:'https://x.com/home'}})).debugEnabled).toBe(false);
+ expect((await send({type:'GET'},pageSender)).settings).not.toHaveProperty('aiDebug');
+ removed(1);await vi.waitFor(()=>expect(session['xpf_debug:1']).toBeUndefined());
+});
+it('設定フレームのデバッグ操作も元のXタブに限定する',async()=>{
+ await send({type:'OPEN'},pageSender);const token=session['xpf_editor:1'].token;
+ await send({type:'DEBUG_SET',enabled:true,tabId:999,editorToken:token},frameSender);expect(session['xpf_debug:1']).toBe(true);expect(session['xpf_debug:999']).toBeUndefined();
+ expect(chrome.tabs.sendMessage).toHaveBeenCalledWith(1,{type:'DEBUG_CHANGED',enabled:true},{frameId:0});
+ await expect(send({type:'DEBUG_SET',enabled:'true',editorToken:token},frameSender)).rejects.toThrow();
+});

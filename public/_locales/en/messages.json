@@ -412,7 +412,7 @@
     "message": "Logged decision details to the settings page Console."
   },
   "m_e93e0a45a7d3": {
-    "message": "Continuously log to Console"
+    "message": "Continuous Console output (debugging)"
   },
   "m_a35571a7e224": {
     "message": "Copy decision details as TSV"
@@ -1317,5 +1317,8 @@
   },
   "detailSharedSource": {
     "message": "Shared request"
+  },
+  "debugSessionHelp": {
+    "message": "Normally leave this off; continuous output can slow the page. It stays on when reloading this tab and turns off when the tab is closed. Not synced or included in settings exports."
   }
 }

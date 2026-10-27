@@ -22,6 +22,8 @@ Only the post's own text is classified. Quote posts and link cards are excluded 
 
 The settings page follows Y!News Filter Plus: keyword cleanup and sorting, AI status and usage, decision details, cache clearing, optional Chrome sync, JSON backup, and history restoration. Usage and decision details belong to the X tab from which settings were opened. Configuration applies across X tabs. Escape outside input fields and the Close button both wait for unsaved edits before dismissing the dialog; failed saves leave the input visible. Escape while an input field is focused leaves the dialog open. Decision reports include an author column linking to the posting account. Regular status updates fetch counts and usage only; report rows are fetched when requested.
 
+**Continuous Console output (debugging)** is normally off because it can slow the page. When enabled, it survives reloads of the same X tab. Closing that tab clears it, and new tabs start with it off. It is excluded from Chrome sync and settings JSON.
+
 Invalid keys, missing permissions, exhausted credit, and provider-wide failures pause AI processing and show a pink AI block with an explanation. Post-specific errors and refusals are skipped without interrupting other posts. Keyword filtering continues.
 
 ## Providers

@@ -9,7 +9,7 @@ function fixture(body='セール実施中',id='123'){
  return document.querySelector('[data-testid="cellInnerDiv"]')!;
 }
 function mock(rows=['セール'],ai=false,decide:()=>Promise<any>=async()=>({scores:[.95]})){
- const state={settings:{...defaults,rows,aiEnabled:ai,aiConditions:['宣伝']},provider:'jev',revision:1,ai:{ready:true,stopped:false,blockedUntil:0}};
+ const state={debugEnabled:false,settings:{...defaults,rows,aiEnabled:ai,aiConditions:['宣伝']},provider:'jev',revision:1,ai:{ready:true,stopped:false,blockedUntil:0}};
  const api={call:vi.fn(async(type:string)=>type==='GET'?structuredClone(state):type==='DECIDE'?decide():undefined),listen:()=>()=>{}};
  return {api,state};
 }
@@ -214,6 +214,12 @@ it('設定変更後の未判定行に、前の条件で処理した本文や時�
  fixture('本文');const {api,state}=mock([],true,async()=>({scores:[.9],attempted:true}));engine=await start(api);await settle();state.settings.aiEnabled=false;state.revision++;await engine.refresh();const data=engine.snapshot(),detail=data.diagnostics[data.rows[0].detailsId!];expect(detail.sentText).toBeNull();expect(detail.lastProcessedAt).toBeNull();
 });
 it('継続Console出力でも表示変更ログだけの変化を反映する',async()=>{
- const cell=fixture('セール'),{api,state}=mock();(state.settings as any).aiDebug=true;const output=vi.spyOn(console,'table').mockImplementation(()=>{});engine=await start(api);output.mockClear();
+ const cell=fixture('セール'),{api,state}=mock();state.debugEnabled=true;const output=vi.spyOn(console,'table').mockImplementation(()=>{});engine=await start(api);output.mockClear();
  cell.remove();engine.scan();expect(output).toHaveBeenCalled();expect(output.mock.calls.at(-1)![0][0]['表示変更ログ']).toContain('DOMから取り外されました');
+});
+
+it('通常設定の旧aiDebugは使わず、タブ内の通知でのみ継続Console出力を変更する',async()=>{
+ fixture('本文');const {api,state}=mock();(state.settings as any).aiDebug=true;let receive!:(m:any)=>any;api.listen=((fn:any)=>{receive=fn;return ()=>{};}) as any;
+ const output=vi.spyOn(console,'table').mockImplementation(()=>{});engine=await start(api);expect(output).not.toHaveBeenCalled();receive({type:'DEBUG_CHANGED',enabled:true});expect(output).toHaveBeenCalled();expect(engine.snapshot().debugEnabled).toBe(true);
+ output.mockClear();receive({type:'DEBUG_CHANGED',enabled:false});engine.scan();expect(output).not.toHaveBeenCalled();expect(engine.snapshot().debugEnabled).toBe(false);
 });

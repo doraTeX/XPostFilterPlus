@@ -1,4 +1,5 @@
 import {updateToolbarBadge} from './badge';
+import {TabDebug} from './tab-debug';
 import {EditorHost,isXPage} from './editor';
 import {t} from "../shared/i18n";
 import {SyncStore,SYNC_ALARM} from './sync-store';
@@ -12,6 +13,7 @@ const controller=new Controller(chrome.storage.local,async(url:string,options:Re
  catch(e){if(e&&typeof e==='object'&&'kind'in e)throw e;throw aiError('',abort.signal.aborted?'timeout':'network');}finally{clearTimeout(timer);}
 },chrome.permissions);
 const editor=new EditorHost();
+const tabDebug=new TabDebug(chrome.storage.session,'xpf_debug:');
 const syncStore=new SyncStore(fn=>controller.settingsTransaction(fn));
 async function reconcileSync(){await syncStore.reconcile();}
 let reportsWriting:Promise<unknown>=Promise.resolve();
@@ -21,7 +23,7 @@ async function xTabs(){return (await chrome.tabs.query({url:['https://x.com/*','
 async function pageData(tabId?:number,type='SNAPSHOT',details=false){
  const tabs=await xTabs(),tab=tabs.find(t=>t.id===tabId)||(tabId===undefined?[...tabs].sort((a,b)=>(b.lastAccessed||0)-(a.lastAccessed||0))[0]:undefined);
  if(!tab)return {tabs:tabs.map(t=>({id:t.id,title:t.title||'X',url:t.url})),connected:false,message:t("m_5d57e446a85e"),rows:[]};
- try{const data=await chrome.tabs.sendMessage(tab.id!,{type,details});if(!data)throw Error();return {...data,tabId:tab.id,connected:true,tabs:tabs.map(t=>({id:t.id,title:t.title||'X',url:t.url}))};}
+ try{const data=await chrome.tabs.sendMessage(tab.id!,{type,details});if(!data)throw Error();return {...data,debugEnabled:await tabDebug.get(tab.id!),tabId:tab.id,connected:true,tabs:tabs.map(t=>({id:t.id,title:t.title||'X',url:t.url}))};}
  catch{return {tabId:tab.id,connected:false,tabs:tabs.map(t=>({id:t.id,title:t.title||'X',url:t.url})),message:t("m_3a2b164bc69e"),rows:[]};}
 }
 async function context(sender:chrome.runtime.MessageSender,token:unknown){
@@ -34,7 +36,15 @@ async function context(sender:chrome.runtime.MessageSender,token:unknown){
 }
 async function handle(m:any,sender:chrome.runtime.MessageSender){
  const access=await context(sender,m.editorToken);if(!access)throw Error(t("m_0dc6cb2b82d2"));
- if(m.type==='GET')return controller.state(access==='admin');
+ if(m.type==='GET')return {...await controller.state(access==='admin'),debugEnabled:sender.tab?.id!==undefined?await tabDebug.get(sender.tab.id):false};
+ if(m.type==='DEBUG_SET'){
+  if(typeof m.enabled!=='boolean'||m.tabId!==undefined&&!Number.isInteger(m.tabId))throw Error(t('m_495dc1760a51'));
+  const target=access==='page'||sender.frameId?sender.tab?.id:m.tabId;
+  const tabs=await xTabs(),tab=tabs.find(tab=>tab.id===target)||(target===undefined?tabs.sort((a,b)=>(b.lastAccessed||0)-(a.lastAccessed||0))[0]:undefined);
+  if(tab?.id===undefined)return {connected:false,debugEnabled:false};
+  await tabDebug.set(tab.id,m.enabled);await chrome.tabs.sendMessage(tab.id,{type:'DEBUG_CHANGED',enabled:m.enabled},{frameId:0}).catch(()=>{});
+  return pageData(tab.id);
+ }
  if(m.type==='PAGE_READY'&&access==='page'&&sender.tab?.id!==undefined){await editor.forget(sender.tab.id);return null;}
  if(m.type==='DECIDE'&&access==='page'&&sender.tab?.id!==undefined){if(typeof m.page!=='string'||m.page.length>100)throw Error(t("m_38cd0d1e5fa0"));return controller.decide(m.post,String(sender.tab.id)+':'+m.page);}
  if(m.type==='OPEN')return editor.open(sender.tab?.id);
@@ -70,7 +80,7 @@ async function handle(m:any,sender:chrome.runtime.MessageSender){
 }
 chrome.runtime.onMessage.addListener((m,sender,respond)=>{void handle(m,sender).then(value=>respond({ok:true,value}),e=>respond({ok:false,error:e.message,kind:e.kind,scope:e.scope,attempted:e.attempted,elapsedMs:e.elapsedMs}));return true;});
 chrome.action.onClicked.addListener(tab=>{void editor.open(tab.id).catch(error=>{if(tab.id!==undefined)void chrome.action.setTitle({tabId:tab.id,title:error.message});});});
-chrome.tabs.onRemoved.addListener(tabId=>{void editor.forget(tabId);});
+chrome.tabs.onRemoved.addListener(tabId=>{void editor.forget(tabId);void tabDebug.forget(tabId).catch(()=>{});});
 chrome.tabs.onUpdated.addListener((tabId,change)=>{if(change.url&&!isXPage(change.url))void editor.forget(tabId);});
 chrome.storage.local.setAccessLevel({accessLevel:'TRUSTED_CONTEXTS'}).catch(()=>{});
 chrome.storage.session.setAccessLevel({accessLevel:'TRUSTED_CONTEXTS'}).catch(()=>{});

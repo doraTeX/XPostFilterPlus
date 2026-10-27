@@ -10,6 +10,8 @@ Keywords, AI conditions, provider settings, API keys, up to 10 previous settings
 
 API keys remain in the background and trusted extension settings frame in the dialog (or the standalone options page); they are not returned to X content scripts. Decision caches contain hashes of inputs and decision scores rather than post text. Cache entries are valid for 7 days, with up to 2,000 entries and a storage limit of approximately 2 MB. Temporary failure records expire after 10 minutes.
 
+Continuous Console output is controlled per X tab through `chrome.storage.session`. It survives a reload of the same tab, is cleared when that tab closes or the browser session ends, and starts off in new tabs. It is excluded from Chrome sync, settings history, and settings JSON.
+
 Decision details shown in a separate extension tab are held temporarily in extension session storage. The latest five reports (up to 6 MB in total) remain available for reloading during the browser session; older reports are removed as new reports are opened. They can include post text, the text used for AI classification, and tab-local processing and display-change logs. Console logging and TSV copying occur only when enabled or requested in settings.
 
 ## Permissions
