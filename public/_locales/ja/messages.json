@@ -988,7 +988,7 @@
     "message": "XPostFilterPlus"
   },
   "extDescription": {
-    "message": "Xのポスト本文をキーワードやAIの意味判定で非表示にします。"
+    "message": "Xのポスト本文をキーワードやAIの意味判定で非表示にする非公式拡張です。X社とは無関係です。"
   },
   "actionTitle": {
     "message": "XPostFilterPlus 設定"
@@ -1149,11 +1149,11 @@
   "reloadRequiredShort": {
     "message": "ページを再読み込み"
   },
-  "keywordMatchedVisible": {
-    "message": "通常キーワードに一致していますが、フィルターOFFまたは全件一時表示により表示しています。"
-  },
   "reportTooLarge": {
     "message": "判定詳細が大きすぎるため表を開けません。条件数を減らして開き直すか、TSVでコピーしてください。"
+  },
+  "keywordMatchedVisible": {
+    "message": "通常キーワードに一致していますが、フィルターOFFまたは全件一時表示により表示しています。"
   },
   "reportAuthor": {
     "message": "投稿者"

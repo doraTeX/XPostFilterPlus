@@ -988,7 +988,7 @@
     "message": "XPostFilterPlus"
   },
   "extDescription": {
-    "message": "Hide X posts using keywords and AI semantic classification."
+    "message": "Unofficial extension for hiding X posts with keywords and AI. Not affiliated with X Corp."
   },
   "actionTitle": {
     "message": "XPostFilterPlus settings"
@@ -1149,11 +1149,11 @@
   "reloadRequiredShort": {
     "message": "Reload this page"
   },
-  "keywordMatchedVisible": {
-    "message": "Matches a keyword, but is visible because filtering is off or all posts are temporarily shown."
-  },
   "reportTooLarge": {
     "message": "The decision report is too large to open. Reduce the number of conditions and try again, or copy the details as TSV."
+  },
+  "keywordMatchedVisible": {
+    "message": "Matches a keyword, but is visible because filtering is off or all posts are temporarily shown."
   },
   "reportAuthor": {
     "message": "Author"

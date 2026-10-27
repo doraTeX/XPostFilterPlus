@@ -1,0 +1,24 @@
+Single purpose
+Hide X posts based on keywords entered by the user or semantic conditions evaluated by an optional user-selected AI provider: Jev, OpenAI Decisions, or Cloudflare Clef.
+
+Justification for storage
+Store exclusion keywords, AI conditions, display settings, provider configuration, API keys or tokens, decision caches, and settings history in chrome.storage. If the user enables Chrome sync, synchronize keywords, conditions, and display settings between Chrome profiles signed into the same Google account. Credentials, provider configuration, and caches are excluded from sync and settings exports.
+
+Justification for alarms
+Retry failed Chrome sync writes and periodically check for changes from other devices while sync is enabled. A persistent alarm can wake the service worker to resume sync. The alarm is cleared when sync is disabled.
+
+Justification for host permissions
+https://x.com/* and https://twitter.com/*: Read the displayed text of posts, hide matching posts, and show the count chip and filtering controls. Linked pages are not fetched.
+
+Justification for optional host permissions
+https://api.typesafe.ai/*: After the user selects Jev and grants connection permission, send post text and classification conditions to Jev and receive decisions. Requests use the user's Jev API key.
+https://api.openai.com/*: After the user selects OpenAI Decisions and grants connection permission, send post text and classification conditions to OpenAI Decisions and receive decisions. Requests use the user's OpenAI API key.
+https://api.cloudflare.com/*: After the user selects Cloudflare Clef and grants connection permission, send post text and classification conditions to the selected clef or clef-flash model and receive decisions. Requests use the user's Cloudflare API token and account ID.
+
+Remote code
+No remote code is used. All executable JavaScript is bundled with the extension. AI services return JSON data, which is never executed as code.
+
+Data usage
+Website content: Displayed post text is read for filtering. When AI classification is enabled, post text and classification conditions are sent to the chosen provider.
+Authentication information: The user's API key or token is stored in local extension storage and sent only to its corresponding provider for authentication. The Cloudflare account ID is used in that provider's API endpoint.
+The extension has no developer-operated collection server and sends no data to advertising or analytics services. Provider handling and usage fees follow the user's agreement with the chosen provider.
