@@ -8,7 +8,7 @@ An unofficial Chrome extension that hides X posts using keyword matching and AI 
 
 1. Open `chrome://extensions` and enable Developer mode.
 2. Select **Load unpacked**, then choose this project's **dist** folder.
-3. Reload X. Open settings from the extension icon or the hidden-post count chip. Settings appear as a modal dialog over the current X page. If the extension is not yet running in that tab, settings open in a separate tab with instructions to reload the original X page.
+3. Reload X. Open settings from the extension icon or the hidden-post count chip. Settings appear as a modal dialog over the current X page. If the extension is not yet running in that tab, settings open in a separate tab with instructions to reload the original X page. The standalone page includes an Open settings button and an Open X link; closing its settings dialog keeps that page open.
 
 After rebuilding, reload both the extension and the X page.
 
@@ -22,7 +22,7 @@ Only the post's own text is classified. Quote posts and link cards are excluded 
 
 The settings page follows Y!News Filter Plus: keyword cleanup and sorting, AI status and usage, decision details, cache clearing, optional Chrome sync, JSON backup, and history restoration. Usage and decision details belong to the X tab from which settings were opened. Configuration applies across X tabs. Escape outside input fields and the Close button both wait for unsaved edits before dismissing the dialog; failed saves leave the input visible. Escape while an input field is focused leaves the dialog open. Decision reports include an author column linking to the posting account. Regular status updates fetch counts and usage only; report rows are fetched when requested.
 
-**Continuous Console output (debugging)** is normally off because it can slow the page. When enabled, it survives reloads of the same X tab. Closing that tab clears it, and new tabs start with it off. It is excluded from Chrome sync and settings JSON.
+**Continuous Console output (debugging)** is shown only in settings opened over an X page; the standalone settings page omits it. It is normally off because it can slow the page. When enabled, it survives reloads of the same X tab. Closing that tab clears it, and new tabs start with it off. It is excluded from Chrome sync and settings JSON.
 
 Invalid keys, missing permissions, exhausted credit, and provider-wide failures pause AI processing and show a pink AI block with an explanation. Post-specific errors and refusals are skipped without interrupting other posts. Keyword filtering continues.
 

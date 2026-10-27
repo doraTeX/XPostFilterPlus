@@ -2,7 +2,7 @@
 
 ## Automated checks
 
-The X extension has 207 passing tests covering extraction, DOM reuse, routing, temporary overrides, tooltip controls, spinner state, token accounting, provider requests, caches, key verification, error scopes, settings persistence, sync conflicts, bilingual UI, safe report rendering, and report filters.
+The X extension has 210 passing tests covering extraction, DOM reuse, routing, temporary overrides, tooltip controls, spinner state, token accounting, provider requests, caches, key verification, error scopes, settings persistence, sync conflicts, bilingual UI, safe report rendering, and report filters.
 
 `npm run check:i18n` verifies the English and Japanese catalogs and placeholders. `npm run build:extension` checks TypeScript and creates the unpacked extension. Packaging verifies manifest identity and scans for unintended local paths or unrelated endpoints.
 
@@ -98,3 +98,7 @@ All 187 tests and 317 bilingual resource keys pass. The settings receiver is ava
 ## Expandable decision details (2026-10-27)
 
 All 199 tests and 353 bilingual keys pass. Reports now have a Details column with processing status, last tab-local processing time, source, keyword / temporary-release / AI flags, bounded processing and display logs, and AI input text. Exports include the same diagnostics. Tests cover full input beyond the abbreviated main column, cache and shared-request attribution, error/refusal distinction, state resets, deduplicated multi-condition payloads, display-log bounds, session report reloads, legacy reports without diagnostics, safe text rendering, and lazy expansion without duplicate content. Chrome local previews confirmed Japanese and English expansion and layout. No real provider requests were made during these checks.
+
+## Standalone settings page (2026-10-27)
+
+The standalone page now keeps a localized landing page behind the settings dialog, with automatic-save and per-device credential guidance, Open settings, and Open X. Closing waits for saves and keeps the page available for reopening. Tests cover both languages, delayed saves, failed saves, input-focused Escape, and unexpected native close events. All 210 tests, 358 bilingual keys, and the extension build pass. Chrome local previews confirmed the Japanese and English landing page, reopening, hiding continuous Console output in standalone settings, and retaining it in settings over the mock timeline. The compact Japanese button measures 105 × 39 CSS pixels with a 24-pixel link gap. No real X or provider requests were used.

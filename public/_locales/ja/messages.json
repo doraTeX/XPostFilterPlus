@@ -1320,5 +1320,17 @@
   },
   "debugSessionHelp": {
     "message": "通常はOFFで使用してください。ONにすると動作が重くなることがあります。同じタブの再読み込みでは維持し、タブを閉じるとOFFになります。Chrome同期・設定の書き出しには含めません。"
+  },
+  "settingsPageAutosave": {
+    "message": "設定は自動保存されます。"
+  },
+  "settingsPageCredentials": {
+    "message": "AIの接続先とAPIキーは各端末で設定します。"
+  },
+  "settingsPageOpen": {
+    "message": "設定を開く"
+  },
+  "settingsPageOpenX": {
+    "message": "Xを開く"
   }
 }

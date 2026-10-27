@@ -1320,5 +1320,17 @@
   },
   "debugSessionHelp": {
     "message": "Normally leave this off; continuous output can slow the page. It stays on when reloading this tab and turns off when the tab is closed. Not synced or included in settings exports."
+  },
+  "settingsPageAutosave": {
+    "message": "Settings are saved automatically."
+  },
+  "settingsPageCredentials": {
+    "message": "Set up the AI provider and API key on each device."
+  },
+  "settingsPageOpen": {
+    "message": "Open settings"
+  },
+  "settingsPageOpenX": {
+    "message": "Open X"
   }
 }
