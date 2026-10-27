@@ -1126,7 +1126,7 @@
     "message": "Posts awaiting a result while AI classification is on and conditions are configured, including queued requests, requests in progress, request limits, missing API keys, and provider-wide pauses or retry delays."
   },
   "guideError": {
-    "message": "Posts with a recorded classification or storage error. See Decision status for the cause."
+    "message": "Posts with a recorded classification or storage error. See Post text and decision details for the cause."
   },
   "guideVisible": {
     "message": "Posts shown normally without being excluded, including posts shown while AI classification is off, no conditions are configured, filtering is off, or all posts are temporarily shown."
@@ -1184,5 +1184,138 @@
   },
   "xPageWaiting": {
     "message": "Waiting for X to finish loading. Open a timeline while signed in to start filtering."
+  },
+  "detailColumn": {
+    "message": "Details"
+  },
+  "detailSummary": {
+    "message": "Post text and decision details"
+  },
+  "detailYes": {
+    "message": "Yes"
+  },
+  "detailNo": {
+    "message": "No"
+  },
+  "detailProcessingError": {
+    "message": "Processing error"
+  },
+  "detailStatus": {
+    "message": "Decision status details"
+  },
+  "detailLastProcessed": {
+    "message": "Last processed in this tab"
+  },
+  "detailSource": {
+    "message": "Source"
+  },
+  "detailKeyword": {
+    "message": "Excluded by keyword"
+  },
+  "detailReleased": {
+    "message": "Temporarily released"
+  },
+  "detailAIEnabled": {
+    "message": "AI enabled"
+  },
+  "detailProcessingLog": {
+    "message": "Processing log"
+  },
+  "detailDisplayLog": {
+    "message": "Display change log"
+  },
+  "detailSentText": {
+    "message": "Text submitted for AI classification"
+  },
+  "detailProcessingHeading": {
+    "message": "Processing log (this tab, latest 20 events)"
+  },
+  "detailDisplayHeading": {
+    "message": "Display change log (this tab, latest 40 events per post)"
+  },
+  "detailNoProcessingTime": {
+    "message": "No processing recorded in this tab"
+  },
+  "detailNoProcessingLog": {
+    "message": "No AI processing recorded in this tab."
+  },
+  "detailNoDisplayLog": {
+    "message": "No display changes recorded."
+  },
+  "detailNoSentText": {
+    "message": "No submitted text recorded."
+  },
+  "detailCachedInput": {
+    "message": "This text matches the saved decision cache. No new request was sent from this tab."
+  },
+  "detailSharedInput": {
+    "message": "This text was evaluated by a shared request. No additional request was sent from this tab."
+  },
+  "traceChecking": {
+    "message": "Checking the decision cache or waiting for an AI response."
+  },
+  "tracePaused": {
+    "message": "Processing is paused for this AI provider."
+  },
+  "traceLimit": {
+    "message": "The request limit was reached. This post was not submitted."
+  },
+  "traceInactive": {
+    "message": "AI classification is disabled. This post was not submitted."
+  },
+  "traceCache": {
+    "message": "Reused a saved decision cache. No new request was sent."
+  },
+  "traceShared": {
+    "message": "Reused a shared request result. No additional request was sent."
+  },
+  "traceSkipped": {
+    "message": "Skipped this post: $value$",
+    "placeholders": {
+      "value": {
+        "content": "$1"
+      }
+    }
+  },
+  "traceCompleted": {
+    "message": "Classification completed. Scores: $value$",
+    "placeholders": {
+      "value": {
+        "content": "$1"
+      }
+    }
+  },
+  "traceFailed": {
+    "message": "Processing failed: $value$",
+    "placeholders": {
+      "value": {
+        "content": "$1"
+      }
+    }
+  },
+  "traceHidden": {
+    "message": "Hidden: $value$",
+    "placeholders": {
+      "value": {
+        "content": "$1"
+      }
+    }
+  },
+  "traceVisible": {
+    "message": "Shown: $value$",
+    "placeholders": {
+      "value": {
+        "content": "$1"
+      }
+    }
+  },
+  "traceRemoved": {
+    "message": "The post element was removed from the DOM."
+  },
+  "traceReused": {
+    "message": "The display element was reused for a different post or updated text."
+  },
+  "detailSharedSource": {
+    "message": "Shared request"
   }
 }

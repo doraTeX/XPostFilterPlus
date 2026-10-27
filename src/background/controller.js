@@ -108,7 +108,7 @@ export class Controller{
    if(stale())return {stale:true};
    const error=e?.kind?e:aiError(provider,'network');
    if(error.scope==='article'||error.kind==='refusal'){
-    const entry={time:Date.now(),skipped:error.kind,provider:c.provider,model:c.model};if(!verifying)await this.cacheWrite(key,entry,generation);return {...entry,attempted:true,elapsedMs:Date.now()-started};
+    const entry={time:Date.now(),skipped:error.kind,errorMessage:error.message,provider:c.provider,model:c.model};if(!verifying)await this.cacheWrite(key,entry,generation);return {...entry,attempted:true,elapsedMs:Date.now()-started};
    }
    await this.serial(async()=>{if(stale())return;const latest=await this.local();if(connectionIdentity(latest)!==connectionIdentity(local))return;await this.store.set({[LOCAL]:failureState(latest,error)});});
    throw Object.assign(error,{attempted:error.kind!=='permission',elapsedMs:Date.now()-started});

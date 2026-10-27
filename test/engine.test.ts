@@ -186,3 +186,34 @@ it('通信中に全件一時表示へ切り替えたら通常表示に分類し�
  resolve({scores:[.95],provider:'jev',model:'jev-1.13.0'});await settle();const row=engine.snapshot().rows[0];expect(row).toMatchObject({kind:'other-row',aiUsage:'paused',provider:'jev',score:.95,display:'表示'});
  engine.pause();expect(engine.snapshot().rows[0].kind).toBe('excluded-row');expect(api.call.mock.calls.filter(([type])=>type==='DECIDE')).toHaveLength(1);
 });
+it('AI判定の時刻・処理と表示のログ・実際の本文を詳細へ引き継ぎ、軽量取得には載せない',async()=>{
+ const text='先頭'.repeat(600)+'\n送信本文の末尾';fixture(text);const {api}=mock([],true,async()=>({scores:[.95],provider:'jev',model:'jev-1.13.0',attempted:true}));engine=await start(api);await settle();
+ const data=engine.snapshot(),row=data.rows[0],detail=data.diagnostics[row.detailsId!];expect(row.text.length).toBe(1000);expect(detail.sentText).toBe(text);expect(detail.lastProcessedAt).toMatch(/^\d{4}-/);expect(detail.processingError).toBe(false);expect(detail.processingLog.join('\n')).toContain('判定完了');expect(detail.displayLog.join('\n')).toContain('非表示');expect(row.aiEnabled).toBe(true);
+ expect(engine.snapshot(false).diagnostics).toEqual({});expect(engine.snapshot(false).rows).toEqual([]);
+ const count=detail.displayLog.length;engine.scan();engine.scan();expect(engine.snapshot().diagnostics[row.detailsId!].displayLog).toHaveLength(count);
+ engine.pause();const paused=engine.snapshot();expect(paused.diagnostics[paused.rows[0].detailsId!].displayLog.join('\n')).toContain('表示：');
+});
+it.each(['cached','shared'])('%sの本文と処理を、現在のタブから新規送信したものとして扱わない',async mode=>{
+ fixture('対象本文');const {api}=mock([],true,async()=>({scores:[.95],provider:'jev',attempted:false,[mode]:true}));engine=await start(api);await settle();
+ const data=engine.snapshot(),detail=data.diagnostics[data.rows[0].detailsId!];expect(detail.inputOrigin).toBe(mode==='cached'?'cache':'shared');expect(detail.sentText).toBe('対象本文');expect(detail.processingLog.join('\n')).toContain(mode==='cached'?'新規送信なし':'追加送信なし');expect(data.stats.requests).toBe(0);
+});
+it('キーワード除外だけなら送信本文やAI処理時刻を作らない',async()=>{
+ fixture('セール');const {api}=mock();engine=await start(api);const data=engine.snapshot(),detail=data.diagnostics[data.rows[0].detailsId!];expect(detail.sentText).toBeNull();expect(detail.lastProcessedAt).toBeNull();expect(detail.processingLog).toEqual([]);expect(data.rows[0].aiEnabled).toBe(false);
+});
+it('ポスト単位のエラー詳細を保持し、回答拒否は通常のスキップとして記録する',async()=>{
+ fixture('本文');const {api}=mock([],true,async()=>({skipped:'timeout',errorMessage:'応答が遅すぎます',attempted:true}));engine=await start(api);await settle();
+ let data=engine.snapshot();expect(data.rows[0].reason).toBe('応答が遅すぎます');expect(data.diagnostics[data.rows[0].detailsId!].processingError).toBe(true);expect(data.diagnostics[data.rows[0].detailsId!].processingLog.join('\n')).toContain('応答が遅すぎます');
+ engine.dispose();const refusal=mock([],true,async()=>({skipped:'refusal',errorMessage:'回答なし',attempted:true}));engine=await start(refusal.api);await settle();data=engine.snapshot();expect(data.diagnostics[data.rows[0].detailsId!].processingError).toBe(false);
+});
+it('多条件でも本文・ログをポストごとの一箇所だけ保持し、表示変更ログを40件に制限する',async()=>{
+ fixture('本文');const {api,state}=mock([],true,async()=>({scores:[.9,.1],attempted:true}));state.settings.aiConditions=['条件A','条件B'];engine=await start(api);await settle();
+ let data=engine.snapshot();expect(data.rows).toHaveLength(2);expect(Object.keys(data.diagnostics)).toHaveLength(1);expect(data.rows[0].detailsId).toBe(data.rows[1].detailsId);
+ for(let i=0;i<50;i++)engine.pause();data=engine.snapshot();expect(data.diagnostics[data.rows[0].detailsId!].displayLog).toHaveLength(40);
+});
+it('設定変更後の未判定行に、前の条件で処理した本文や時刻を流用しない',async()=>{
+ fixture('本文');const {api,state}=mock([],true,async()=>({scores:[.9],attempted:true}));engine=await start(api);await settle();state.settings.aiEnabled=false;state.revision++;await engine.refresh();const data=engine.snapshot(),detail=data.diagnostics[data.rows[0].detailsId!];expect(detail.sentText).toBeNull();expect(detail.lastProcessedAt).toBeNull();
+});
+it('継続Console出力でも表示変更ログだけの変化を反映する',async()=>{
+ const cell=fixture('セール'),{api,state}=mock();(state.settings as any).aiDebug=true;const output=vi.spyOn(console,'table').mockImplementation(()=>{});engine=await start(api);output.mockClear();
+ cell.remove();engine.scan();expect(output).toHaveBeenCalled();expect(output.mock.calls.at(-1)![0][0]['表示変更ログ']).toContain('DOMから取り外されました');
+});

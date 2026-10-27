@@ -54,7 +54,7 @@ async function handle(m:any,sender:chrome.runtime.MessageSender){
  if(m.type==='SYNC_RESOLVE'){await syncStore.queue(async()=>{await syncStore.resolve(m.doc);});return syncStore.state();}
  if(m.type==='REPORT')return reportTransaction(async()=>{
   const data=await pageData(m.tabId,'SNAPSHOT',true),id=crypto.randomUUID(),key='xpf_report:'+id;
-  const report={rows:data.rows,time:Date.now(),url:data.url||'',title:data.title||''},bytes=(value:unknown)=>new TextEncoder().encode(JSON.stringify(value)).length,limit=6*1024*1024;
+  const report={rows:data.rows,diagnostics:data.diagnostics||{},time:Date.now(),url:data.url||'',title:data.title||''},bytes=(value:unknown)=>new TextEncoder().encode(JSON.stringify(value)).length,limit=6*1024*1024;
   if(bytes({[key]:report})>limit)throw Error(t('reportTooLarge'));
   const all=await chrome.storage.session.get(null),reports=Object.keys(all).filter(k=>k.startsWith('xpf_report:')).sort((a,b)=>(all[a].time||0)-(all[b].time||0)),future={...all,[key]:report},remove:string[]=[];
   // 再読み込み用の表は最新5件・合計6MBまで。UUIDの順序を作成日時として扱わない。

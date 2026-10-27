@@ -1126,7 +1126,7 @@
     "message": "AI判定がONで条件が設定され、結果をまだ取得していないポスト。未送信・順番待ち・通信中のほか、問い合わせ上限到達、APIキー未登録、先行する通信のエラーによる停止・再試行待ちを含みます"
   },
   "guideError": {
-    "message": "このポストのAI判定処理、または保存・読み込み処理でエラーが記録されたポスト。原因は「判定状況」で確認できます"
+    "message": "このポストのAI判定処理、または保存・読み込み処理でエラーが記録されたポスト。原因は「ポスト本文・判定の詳細」で確認できます"
   },
   "guideVisible": {
     "message": "除外の対象とならず通常表示されたポスト。AI判定OFF、条件未設定、フィルターOFF、全件一時表示のポストも含みます"
@@ -1184,5 +1184,138 @@
   },
   "xPageWaiting": {
     "message": "Xの画面を準備中です。ログイン済みのタイムラインなどを開くと、フィルターが動作します。"
+  },
+  "detailColumn": {
+    "message": "詳細"
+  },
+  "detailSummary": {
+    "message": "ポスト本文・判定の詳細"
+  },
+  "detailYes": {
+    "message": "はい"
+  },
+  "detailNo": {
+    "message": "いいえ"
+  },
+  "detailProcessingError": {
+    "message": "処理エラー"
+  },
+  "detailStatus": {
+    "message": "判定状況の詳細"
+  },
+  "detailLastProcessed": {
+    "message": "最終処理時刻"
+  },
+  "detailSource": {
+    "message": "取得元"
+  },
+  "detailKeyword": {
+    "message": "キーワードによる除外"
+  },
+  "detailReleased": {
+    "message": "一時解除"
+  },
+  "detailAIEnabled": {
+    "message": "AI有効"
+  },
+  "detailProcessingLog": {
+    "message": "処理ログ"
+  },
+  "detailDisplayLog": {
+    "message": "表示変更ログ"
+  },
+  "detailSentText": {
+    "message": "AI判定に送信したテキスト"
+  },
+  "detailProcessingHeading": {
+    "message": "処理ログ（このタブ・直近20件）"
+  },
+  "detailDisplayHeading": {
+    "message": "表示変更ログ（このタブ・ポストごと・直近40件）"
+  },
+  "detailNoProcessingTime": {
+    "message": "このタブでの処理記録なし"
+  },
+  "detailNoProcessingLog": {
+    "message": "このタブではまだAI判定を処理していません。"
+  },
+  "detailNoDisplayLog": {
+    "message": "表示変更の記録なし"
+  },
+  "detailNoSentText": {
+    "message": "送信テキストの記録なし"
+  },
+  "detailCachedInput": {
+    "message": "保存済みキャッシュの判定対象本文です。このタブからの新規送信はありません。"
+  },
+  "detailSharedInput": {
+    "message": "共有した問い合わせの判定対象本文です。このタブからの追加送信はありません。"
+  },
+  "traceChecking": {
+    "message": "判定キャッシュを確認、またはAI応答を待機中。"
+  },
+  "tracePaused": {
+    "message": "利用AIの判定処理を一時停止中。"
+  },
+  "traceLimit": {
+    "message": "問い合わせ上限に到達。このポストは未送信です。"
+  },
+  "traceInactive": {
+    "message": "AI判定が無効のため、このポストは未送信です。"
+  },
+  "traceCache": {
+    "message": "保存済みキャッシュを再利用。新規送信なし。"
+  },
+  "traceShared": {
+    "message": "共有した問い合わせの結果を再利用。追加送信なし。"
+  },
+  "traceSkipped": {
+    "message": "このポストをスキップ：$value$",
+    "placeholders": {
+      "value": {
+        "content": "$1"
+      }
+    }
+  },
+  "traceCompleted": {
+    "message": "判定完了。判定値：$value$",
+    "placeholders": {
+      "value": {
+        "content": "$1"
+      }
+    }
+  },
+  "traceFailed": {
+    "message": "処理に失敗：$value$",
+    "placeholders": {
+      "value": {
+        "content": "$1"
+      }
+    }
+  },
+  "traceHidden": {
+    "message": "非表示：$value$",
+    "placeholders": {
+      "value": {
+        "content": "$1"
+      }
+    }
+  },
+  "traceVisible": {
+    "message": "表示：$value$",
+    "placeholders": {
+      "value": {
+        "content": "$1"
+      }
+    }
+  },
+  "traceRemoved": {
+    "message": "ポスト要素がDOMから取り外されました。"
+  },
+  "traceReused": {
+    "message": "表示要素が別のポストまたは更新された本文に再利用されました。"
+  },
+  "detailSharedSource": {
+    "message": "共有した問い合わせ"
   }
 }

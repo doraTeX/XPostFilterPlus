@@ -2,7 +2,7 @@
 
 ## Automated checks
 
-The X extension has 187 passing tests covering extraction, DOM reuse, routing, temporary overrides, tooltip controls, spinner state, token accounting, provider requests, caches, key verification, error scopes, settings persistence, sync conflicts, bilingual UI, safe report rendering, and report filters.
+The X extension has 199 passing tests covering extraction, DOM reuse, routing, temporary overrides, tooltip controls, spinner state, token accounting, provider requests, caches, key verification, error scopes, settings persistence, sync conflicts, bilingual UI, safe report rendering, and report filters.
 
 `npm run check:i18n` verifies the English and Japanese catalogs and placeholders. `npm run build:extension` checks TypeScript and creates the unpacked extension. Packaging verifies manifest identity and scans for unintended local paths or unrelated endpoints.
 
@@ -91,3 +91,8 @@ The reported intermittent welcome screen / missing redirect was not reproduced i
 ## Settings during startup wait (2026-10-27)
 
 All 187 tests and 317 bilingual resource keys pass. The settings receiver is available during the entry-route wait after stale grants are revoked. Tests cover opening and closing settings, confirmation and copying before engine startup, rejecting other senders, localized waiting snapshots, preventing temporary show-all during initialization, enabling it after startup, reusing a single receiver, and removing it on disconnection. The manifest now links to the published GitHub repository. The accidentally generated ignored .build-check/y-dummy.tgz was removed. This audit follow-up used automated checks; it has not been rechecked in the installed Chrome extension.
+
+
+## Expandable decision details (2026-10-27)
+
+All 199 tests and 353 bilingual keys pass. Reports now have a Details column with processing status, last tab-local processing time, source, keyword / temporary-release / AI flags, bounded processing and display logs, and AI input text. Exports include the same diagnostics. Tests cover full input beyond the abbreviated main column, cache and shared-request attribution, error/refusal distinction, state resets, deduplicated multi-condition payloads, display-log bounds, session report reloads, legacy reports without diagnostics, safe text rendering, and lazy expansion without duplicate content. Chrome local previews confirmed Japanese and English expansion and layout. No real provider requests were made during these checks.

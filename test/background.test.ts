@@ -101,3 +101,10 @@ it('ページ再読み込み後の起動通知で前の設定フレームのト�
  await send({type:'PAGE_READY'},pageSender);expect(session['xpf_editor:1']).toBeUndefined();await expect(send({type:'GET',editorToken:old},frameSender)).rejects.toThrow();
  await send({type:'OPEN'},pageSender);expect(session['xpf_editor:1'].token).not.toBe(old);
 });
+
+it('判定表の診断本文・処理ログを一度だけ保存し、再読み込みでも引き継ぐ',async()=>{
+ const diagnostics={p:{processingError:false,lastProcessedAt:'2026-10-27T00:00:00.000Z',processingLog:['完了'],displayLog:['非表示'],sentText:'送信本文'}};
+ vi.mocked(chrome.tabs.sendMessage).mockResolvedValue({url:'https://x.com/home',rows:[{postId:'123',detailsId:'p'}],diagnostics});
+ await send({type:'REPORT',tabId:1});const key=Object.keys(session).find(k=>k.startsWith('xpf_report:'))!,id=key.slice('xpf_report:'.length);
+ expect((await send({type:'REPORT_DATA',id})).diagnostics).toEqual(diagnostics);expect((await send({type:'REPORT_DATA',id})).diagnostics.p.sentText).toBe('送信本文');
+});

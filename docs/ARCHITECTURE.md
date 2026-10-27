@@ -32,3 +32,6 @@ Content startup waits while X is at the root entry path `/` or has not rendered 
 
 
 After revoking stale frame grants, the content script registers the settings message receiver before waiting for the X view. Explicit user requests can therefore open, close, confirm, and copy through the authenticated settings dialog while filtering is not yet running. A lightweight snapshot reports that X is not ready; temporary show-all stays disabled until the engine starts. The engine attaches to the existing receiver rather than registering a second receiver.
+
+
+Report rows reference per-post diagnostics so multiple conditions do not duplicate submitted text or log payloads. Processing traces retain up to 20 events and display traces up to 40 events per post, across at most 500 tracked entries each in the current view. Explicit reports, TSV and Console exports include these diagnostics; periodic count polling omits them. The details DOM is created on expansion. Saved reports retain the diagnostics in the same session snapshot as their rows, under the existing five-report / 6 MB cap. Cache and shared-request input text is identified separately from a new request sent by the current tab.
