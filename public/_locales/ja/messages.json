@@ -1178,5 +1178,8 @@
   },
   "settingsReloadNotice": {
     "message": "このXページでは拡張機能がまだ起動していないため、設定を別タブで開きました。元のXページを再読み込みすると、ページ上で設定を開けます。"
+  },
+  "copyToastSuccess": {
+    "message": "✔ Copied!"
   }
 }

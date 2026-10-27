@@ -2,3 +2,5 @@
 
 .ai-toggle input[type=checkbox],.inline-check input[type=checkbox]{margin-top:0}
 html.embedded{background:#fff}html.embedded body{background:#fff}html.embedded #app{width:100%;min-height:100vh;margin:0;border:0;border-radius:0;box-shadow:none}
+
+.copy-toast{position:fixed;z-index:100;background:#111;color:#fff;font:700 26px/1.3 system-ui,sans-serif;padding:12px 20px;border-radius:10px;box-shadow:0 4px 20px #0005;pointer-events:none;opacity:1;transition:opacity .65s ease}

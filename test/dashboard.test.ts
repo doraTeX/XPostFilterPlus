@@ -79,3 +79,13 @@ it.each(['ja','en'])('代替の設定タブでは元ページの再読み込み�
  try{const {root}=await setup();expect(root.querySelector('.notice')!.textContent).toContain(lang==='ja'?'元のXページを再読み込み':'Reload the original X page');}
  finally{history.replaceState({},'',previous);document.documentElement.lang='ja';}
 });
+
+it('TSVコピー完了を待ってからY版と同じCopied!表示を出す',async()=>{
+ const {root,api}=await setup();let finish!:()=>void;const copy=vi.fn(()=>new Promise<void>(resolve=>finish=resolve));Object.assign(api,{copy});
+ click(root,'判定詳細をTSVでコピー');await vi.waitFor(()=>expect(copy).toHaveBeenCalled());expect(root.querySelector('.copy-toast')).toBeNull();
+ finish();await vi.waitFor(()=>expect(root.querySelector('.copy-toast')!.textContent).toBe('✔ Copied!'));expect(root.querySelector('.copy-toast')!.getAttribute('role')).toBe('status');
+});
+it('TSVコピーが失敗した場合は成功表示を出さず、エラーを表示する',async()=>{
+ const {root,api}=await setup();Object.assign(api,{copy:vi.fn(async()=>{throw Error('clipboard blocked');})});
+ click(root,'判定詳細をTSVでコピー');await vi.waitFor(()=>expect(root.querySelector('.status.error')!.textContent).toBe('clipboard blocked'));expect(root.querySelector('.copy-toast')).toBeNull();
+});
