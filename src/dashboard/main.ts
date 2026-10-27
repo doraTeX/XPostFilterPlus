@@ -1,6 +1,6 @@
 import {t,language} from '../shared/i18n';
 import {mountDashboard} from './ui';
-import {SETTINGS,LOCAL} from '../shared/settings';
+import {observeSettings} from './settings-events';
 import {call} from '../shared/client';
 import {connectionOrigin} from '../shared/ai.js';
 import {bindCloseEvents} from './close-events';
@@ -26,5 +26,5 @@ window.addEventListener('pagehide',()=>{unbindClose();dashboard?.dispose();},{on
 void mountDashboard(document.getElementById('app')!,{
  call:invoke,
  ...(embedded?{confirm:async(value:string)=>!!await invoke('CONFIRM',{value}),copy:async(value:string)=>{await invoke('COPY',{value});}}:{}),
- onChange:(fn:()=>void)=>{const listener=(changes:Record<string,chrome.storage.StorageChange>,area:string)=>{if(area==='local'&&(SETTINGS in changes||LOCAL in changes||'xpf_sync_state' in changes))fn();};chrome.storage.onChanged.addListener(listener);return ()=>chrome.storage.onChanged.removeListener(listener);}
+ onChange:observeSettings
 }).then(value=>{dashboard=value;dashboard.focus();}).catch(e=>{renderSettingsError(document.getElementById('app')!,e,requestClose);});

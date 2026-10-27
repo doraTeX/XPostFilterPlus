@@ -14,3 +14,11 @@ it('トップレベルの設定画面でも初期化失敗後にEscで閉じら�
  // トップレベルの設定エラーでは通常のCLOSEを使う。
  window.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape'}));await Promise.resolve();expect(mocks.call).toHaveBeenCalledWith('CLOSE',{});
 });
+it('storageなしでも通知監視で初期化を中断せず、設定画面を閉じられる',async()=>{
+ vi.useFakeTimers();vi.stubGlobal('chrome',{});vi.stubGlobal('parent',window);
+ const close=vi.fn(async()=>{}),dispose=vi.fn();let stop!:()=>void;
+ mocks.mount.mockImplementation(async(_root,api)=>{stop=api.onChange(vi.fn());return {close,focus:vi.fn(),dispose};});
+ try{await import('../src/dashboard/main');await Promise.resolve();window.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape'}));await Promise.resolve();
+ expect(close).toHaveBeenCalledTimes(1);expect(document.querySelector('[role=alert]')).toBeNull();
+ }finally{stop?.();vi.useRealTimers();}
+});
