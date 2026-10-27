@@ -14,6 +14,7 @@ export async function mountDashboard(root:HTMLElement,api:API){
  const h=<K extends keyof HTMLElementTagNameMap>(tag:K,text='',parent:HTMLElement=root,cls='')=>{const e=document.createElement(tag);e.textContent=text;if(cls)e.className=cls;parent.append(e);return e;};
  const body=h('div','',root,'body'),form=h('form','',body);form.onsubmit=e=>e.preventDefault();
  h('h1','XPostFilterPlus',form);
+ if(window.parent===window&&new URL(location.href).searchParams.get('reload')==='1')h('p',t('settingsReloadNotice'),form,'notice');
  const hiddenTitle=h('p',t("m_46c05df5f0ce"),form,'hint'),hiddenTags=h('div','',form,'tags');hiddenTags.setAttribute('aria-label',t("m_70759929ec00"));
  h('p',t("m_5763f6331af0"),form,'hint');
  const area=h('textarea','',form);area.setAttribute('aria-label',t("m_900b03b14550"));area.placeholder=t("m_939d3b3eccdd");area.spellcheck=false;area.value=snapshot.settings.rows.join('\n');

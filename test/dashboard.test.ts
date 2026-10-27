@@ -73,3 +73,9 @@ it('設定画面の一時表示とチップのショートカットが同じ状�
   pause.click();await dashboard.refreshPage();expect(root.querySelector('.footer button')!.textContent).toBe('一時的に全件表示');expect(pause.getAttribute('aria-pressed')).toBe('false');expect(document.querySelector('[data-xpf-hidden]')).not.toBeNull();
  }finally{engine.dispose();}
 });
+
+it.each(['ja','en'])('代替の設定タブでは元ページの再読み込み案内を%sで表示する',async lang=>{
+ const previous=location.href;document.documentElement.lang=lang;history.replaceState({},'','/?tab=1&reload=1');
+ try{const {root}=await setup();expect(root.querySelector('.notice')!.textContent).toContain(lang==='ja'?'元のXページを再読み込み':'Reload the original X page');}
+ finally{history.replaceState({},'',previous);document.documentElement.lang='ja';}
+});

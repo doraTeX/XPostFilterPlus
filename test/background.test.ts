@@ -86,3 +86,12 @@ it('同期アラームから送信失敗を再試行する',async()=>{
  alarm({name:'xpf-sync'});await vi.waitFor(()=>expect(local.xpf_sync_state.pending).toBe(false));
  expect(Object.keys(remote).length).toBeGreaterThan(0);
 });
+
+it.each(['missing','rejected'])('設定フレームを開けない%sタブでは、元のXタブを保持して設定タブを開く',async mode=>{
+ vi.mocked(chrome.tabs.sendMessage).mockImplementationOnce(async()=>{if(mode==='missing')throw Error('Receiving end does not exist');return {opened:false} as any;});
+ await send({type:'OPEN'},pageSender);expect(chrome.tabs.create).toHaveBeenCalledWith({url:'chrome-extension://test-extension/src/dashboard/index.html?tab=1&reload=1'});expect(chrome.tabs.remove).not.toHaveBeenCalled();expect(session['xpf_editor:1']).toBeUndefined();
+});
+it('代替の設定タブがある場合は再利用し、何度押しても増やさない',async()=>{
+ const url='chrome-extension://test-extension/src/dashboard/index.html?tab=1&reload=1';vi.spyOn(chrome.tabs,'query').mockResolvedValue([{id:22,url} as chrome.tabs.Tab]);vi.mocked(chrome.tabs.sendMessage).mockRejectedValue(Error('Receiving end does not exist'));
+ await send({type:'OPEN'},pageSender);await send({type:'OPEN'},pageSender);expect(chrome.tabs.update).toHaveBeenCalledTimes(2);expect(chrome.tabs.update).toHaveBeenCalledWith(22,{active:true});expect(chrome.tabs.create).not.toHaveBeenCalled();
+});

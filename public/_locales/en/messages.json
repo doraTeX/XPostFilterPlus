@@ -1175,5 +1175,8 @@
   },
   "aiNotApplicable": {
     "message": "Not applicable"
+  },
+  "settingsReloadNotice": {
+    "message": "Settings opened in a separate tab because the extension is not yet running on the X page. Reload the original X page to open settings over that page."
   }
 }

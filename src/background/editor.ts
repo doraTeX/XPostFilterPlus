@@ -13,9 +13,15 @@ export class EditorHost{
    await chrome.storage.session.set({[key]:{token}});
    const url=chrome.runtime.getURL('src/dashboard/index.html')+'?embedded=1&tab='+id+'#token='+token;
    try{const reply=await chrome.tabs.sendMessage(id,{type:'OPEN_SETTINGS',url},{frameId:0});if(!reply?.opened)throw Error();}
-   catch{await chrome.storage.session.remove(key);throw Error(t('reloadRequired'));}
+   catch{await chrome.storage.session.remove(key);await this.fallback(id);}
   });
   this.opening.set(id,next);try{await next;}finally{if(this.opening.get(id)===next)this.opening.delete(id);}
+ }
+ async fallback(tabId:number){
+  const url=chrome.runtime.getURL('src/dashboard/index.html')+'?tab='+tabId+'&reload=1';
+  const existing=(await chrome.tabs.query({})).find(tab=>tab.url===url);
+  if(existing?.id!==undefined)await chrome.tabs.update(existing.id,{active:true});
+  else await chrome.tabs.create({url});
  }
  async authorized(sender:chrome.runtime.MessageSender,token:unknown){
   if(sender.tab?.id===undefined||!isXPage(sender.tab.url)||!sender.frameId||typeof token!=='string')return false;
