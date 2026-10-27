@@ -1154,5 +1154,8 @@
   },
   "reportTooLarge": {
     "message": "The decision report is too large to open. Reduce the number of conditions and try again, or copy the details as TSV."
+  },
+  "reportAuthor": {
+    "message": "Author"
   }
 }

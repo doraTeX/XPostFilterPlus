@@ -1154,5 +1154,8 @@
   },
   "reportTooLarge": {
     "message": "判定詳細が大きすぎるため表を開けません。条件数を減らして開き直すか、TSVでコピーしてください。"
+  },
+  "reportAuthor": {
+    "message": "投稿者"
   }
 }

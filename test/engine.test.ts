@@ -13,6 +13,14 @@ function mock(rows=['セール'],ai=false,decide:()=>Promise<any>=async()=>({sco
  return {api,state};
 }
 async function settle(){for(let i=0;i<30;i++)await Promise.resolve();}
+it('投稿者を判定詳細に載せ、本文とIDだけを判定要求に渡す',async()=>{
+ fixture('判定本文');const {api}=mock([],true);engine=await start(api);await settle();
+ expect(engine.snapshot().rows[0].author).toBe('a');
+ const request=api.call.mock.calls.find(c=>c[0]==='DECIDE') as unknown as [string,{post:Record<string,unknown>}];
+ expect(request[1].post).toEqual({id:'123',text:'判定本文'});
+ document.querySelector('a')!.setAttribute('href','/new_author/status/123');engine.scan();
+ expect(engine.snapshot().rows[0].author).toBe('new_author');expect(api.call.mock.calls.filter(c=>c[0]==='DECIDE')).toHaveLength(1);
+});
 it.each(['pause','disabled'])('%sでもキーワード一致の記録を保持し、未取得のAI条件へ置き換えない',async mode=>{
  const cell=fixture(),{api,state}=mock(['セール'],true);if(mode==='disabled')state.settings.enabled=false;
  engine=await start(api);if(mode==='pause')engine.pause();await settle();

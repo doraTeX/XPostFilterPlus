@@ -68,7 +68,7 @@ export async function start(api){
     const hidden=settings.enabled&&!paused&&(word.length?word.some(w=>!released.has('keyword: '+w)):settings.aiEnabled&&state.ai.ready&&!state.ai.verifying&&!state.ai.stopped&&entry?.scores?.some((s,j)=>s>=settings.aiThreshold&&!released.has('AI: '+settings.aiConditions[j])));
     if(word.length&&!hidden)reason=t('keywordMatchedVisible');
     const decisive=hidden&&!word.length&&score!==null&&score>=settings.aiThreshold&&!released.has('AI: '+condition);
-    rows.push({postId:r.post.id,text:r.post.text.slice(0,1000),condition,provider:word.length?'':entry?.provider||'',model:word.length?'':entry?.model||'',score,threshold:word.length?null:settings.aiThreshold,aiUsage:!settings.aiEnabled?'off':'not-fetched',source:word.length?t("m_d9acb15aeab3"):entry?.cached?t("m_b7612a6cdb0a"):entry?.scores||entry?.skipped?t("m_11d11a2b6c64"):t("m_e7954a2f3ace"),display:hidden?t("m_8389c10f44c0"):t("m_17efc6654ed2"),reason,keyword:!!word.length,kind:word.length?(hidden?'keyword-excluded-row':'other-row'):!settings.aiEnabled?'other-row':entry?.skipped?'error-row':!word.length&&!entry?.scores?'pending-row':decisive?'excluded-row':'other-row',elapsedMs:word.length?null:entry?.elapsedMs??null});
+    rows.push({postId:r.post.id,author:r.post.author,text:r.post.text.slice(0,1000),condition,provider:word.length?'':entry?.provider||'',model:word.length?'':entry?.model||'',score,threshold:word.length?null:settings.aiThreshold,aiUsage:!settings.aiEnabled?'off':'not-fetched',source:word.length?t("m_d9acb15aeab3"):entry?.cached?t("m_b7612a6cdb0a"):entry?.scores||entry?.skipped?t("m_11d11a2b6c64"):t("m_e7954a2f3ace"),display:hidden?t("m_8389c10f44c0"):t("m_17efc6654ed2"),reason,keyword:!!word.length,kind:word.length?(hidden?'keyword-excluded-row':'other-row'):!settings.aiEnabled?'other-row':entry?.skipped?'error-row':!word.length&&!entry?.scores?'pending-row':decisive?'excluded-row':'other-row',elapsedMs:word.length?null:entry?.elapsedMs??null});
     if(rows.length>=2000)break;
    }if(rows.length>=2000)break;
   }
@@ -96,7 +96,7 @@ export async function start(api){
    const post=extractPost(article),prior=records.get(article);
    if(!post){prior?.container?.removeAttribute(HIDE);records.delete(article);continue;}
    if(!prior||prior.post.identity!==post.identity){prior?.container?.removeAttribute(HIDE);records.set(article,{article,post,reasons:[],container:null});}
-   const record=records.get(article);paint(record);observed.set(post.identity,record);
+   const record=records.get(article);record.post=post;paint(record);observed.set(post.identity,record);
   }
   while(observed.size>500)observed.delete(observed.keys().next().value);
   render();void pump();
