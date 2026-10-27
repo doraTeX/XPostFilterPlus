@@ -89,3 +89,10 @@ it('TSVコピーが失敗した場合は成功表示を出さず、エラーを�
  const {root,api}=await setup();Object.assign(api,{copy:vi.fn(async()=>{throw Error('clipboard blocked');})});
  click(root,'判定詳細をTSVでコピー');await vi.waitFor(()=>expect(root.querySelector('.status.error')!.textContent).toBe('clipboard blocked'));expect(root.querySelector('.copy-toast')).toBeNull();
 });
+it('Xの画面準備待ちでは一時表示を無効にし、準備後の定期更新で操作可能に戻す',async()=>{
+ const {root,api}=await setup(),original=api.call.getMockImplementation()!;let initializing=true;
+ api.call.mockImplementation(async(type,data)=>type==='PAGE'?{connected:true,initializing,paused:false,hiddenWords:[],message:'Xの画面を準備中です',stats:{},summary:{},rows:[]}:original(type,data));
+ for(let i=0;i<10;i++)await Promise.resolve();await dashboard!.refreshPage();
+ const pause=Array.from(root.querySelectorAll('button')).find(b=>b.textContent==='一時的に全件表示')!;expect(pause.disabled).toBe(true);
+ initializing=false;await dashboard!.refreshPage();expect(pause.disabled).toBe(false);
+});

@@ -1181,5 +1181,8 @@
   },
   "copyToastSuccess": {
     "message": "✔ Copied!"
+  },
+  "xPageWaiting": {
+    "message": "Waiting for X to finish loading. Open a timeline while signed in to start filtering."
   }
 }

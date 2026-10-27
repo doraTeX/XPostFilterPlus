@@ -1181,5 +1181,8 @@
   },
   "copyToastSuccess": {
     "message": "✔ Copied!"
+  },
+  "xPageWaiting": {
+    "message": "Xの画面を準備中です。ログイン済みのタイムラインなどを開くと、フィルターが動作します。"
   }
 }
