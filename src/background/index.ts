@@ -35,6 +35,7 @@ async function context(sender:chrome.runtime.MessageSender,token:unknown){
 async function handle(m:any,sender:chrome.runtime.MessageSender){
  const access=await context(sender,m.editorToken);if(!access)throw Error(t("m_0dc6cb2b82d2"));
  if(m.type==='GET')return controller.state(access==='admin');
+ if(m.type==='PAGE_READY'&&access==='page'&&sender.tab?.id!==undefined){await editor.forget(sender.tab.id);return null;}
  if(m.type==='DECIDE'&&access==='page'&&sender.tab?.id!==undefined){if(typeof m.page!=='string'||m.page.length>100)throw Error(t("m_38cd0d1e5fa0"));return controller.decide(m.post,String(sender.tab.id)+':'+m.page);}
  if(m.type==='OPEN')return editor.open(sender.tab?.id);
  if(m.type==='BADGE')return updateToolbarBadge(m.count,sender,m.error);

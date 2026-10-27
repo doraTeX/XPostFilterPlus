@@ -95,3 +95,9 @@ it('代替の設定タブがある場合は再利用し、何度押しても増�
  const url='chrome-extension://test-extension/src/dashboard/index.html?tab=1&reload=1';vi.spyOn(chrome.tabs,'query').mockResolvedValue([{id:22,url} as chrome.tabs.Tab]);vi.mocked(chrome.tabs.sendMessage).mockRejectedValue(Error('Receiving end does not exist'));
  await send({type:'OPEN'},pageSender);await send({type:'OPEN'},pageSender);expect(chrome.tabs.update).toHaveBeenCalledTimes(2);expect(chrome.tabs.update).toHaveBeenCalledWith(22,{active:true});expect(chrome.tabs.create).not.toHaveBeenCalled();
 });
+it('ページ再読み込み後の起動通知で前の設定フレームのトークンを失効する',async()=>{
+ await send({type:'OPEN'},pageSender);const old=session['xpf_editor:1'].token;
+ await expect(send({type:'PAGE_READY',editorToken:old},frameSender)).rejects.toThrow();expect(session['xpf_editor:1'].token).toBe(old);
+ await send({type:'PAGE_READY'},pageSender);expect(session['xpf_editor:1']).toBeUndefined();await expect(send({type:'GET',editorToken:old},frameSender)).rejects.toThrow();
+ await send({type:'OPEN'},pageSender);expect(session['xpf_editor:1'].token).not.toBe(old);
+});

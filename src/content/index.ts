@@ -4,7 +4,7 @@ import {call} from '../shared/client';
 import {isConnected,onDisconnected,isDisconnectedError} from '../shared/connection';
 const editor=createSettingsDialog(path=>chrome.runtime.getURL(path));
 onDisconnected(()=>editor.dispose());
-void start({call,isConnected,onDisconnected,listen:(fn:(m:any)=>any)=>{
+async function launch(){await call('PAGE_READY');return start({call,isConnected,onDisconnected,listen:(fn:(m:any)=>any)=>{
  const handler=(m:any,sender:chrome.runtime.MessageSender,respond:(data:any)=>void)=>{
   if(!isConnected()||sender.id!==chrome.runtime.id)return;
   if(m.type==='OPEN_SETTINGS'){try{respond(editor.open(m.url));}catch(error){respond({opened:false,error:(error as Error).message});}return;}
@@ -14,4 +14,5 @@ void start({call,isConnected,onDisconnected,listen:(fn:(m:any)=>any)=>{
  };
  try{if(isConnected())chrome.runtime.onMessage.addListener(handler);}catch(error){if(!isDisconnectedError(error))throw error;isConnected();}
  return ()=>{try{chrome.runtime.onMessage.removeListener(handler);}catch{/* 無効化後の解除ではChrome APIを再試行しない。 */}};
-}}).catch(error=>{if(!isDisconnectedError(error))console.error('XPostFilterPlus:',error.message);});
+}});}
+void launch().catch(error=>{if(!isDisconnectedError(error))console.error('XPostFilterPlus:',error.message);});
