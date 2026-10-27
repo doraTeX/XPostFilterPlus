@@ -6,6 +6,7 @@ const TTL=7*86400000;
 export class Controller{
  /** @param {any} store @param {any} transport @param {any} permissions */
  constructor(store,transport,permissions){this.store=store;this.transport=transport;this.permissions=permissions;this.generation=0;this.inflight=new Map();this.active=0;this.waiters=[];this.pages=new Map();this.writes=Promise.resolve();this.checkId=null;}
+ /** @template T @param {()=>Promise<T>} fn @returns {Promise<T>} */
  serial(fn){const r=this.writes.then(fn,fn);this.writes=r.catch(()=>{});return r;}
  async settings(){return validate((await this.store.get(SETTINGS))[SETTINGS]||defaults);}
  async local(){return (await this.store.get(LOCAL))[LOCAL]||{provider:'jev',profiles:{}};}
@@ -15,7 +16,8 @@ export class Controller{
   const permissionError=configured&&!permitted?aiError(providerOf(local),'permission'):null;
   return {settings,revision:local.revision||0,...(admin?{local,history:(await this.store.get(HISTORY))[HISTORY]||[]}:{provider:local.provider||'jev',model:profileOf(local).model}),ai:{configured,permitted,verifying:!!this.checkId&&!!local.verifying,check:local.connectionCheck,ready:configured&&permitted,stopped:!!local.stopped,blockedUntil:local.blockedUntil||0,message:permissionError?.message||local.lastError||'',advice:permissionError?.advice||local.errorAdvice||''}};
  }
- async save(settings,local,expected,reason='editor-save'){return this.serial(async()=>{
+ /** @param {string} [expected] @param {(settings: import('../shared/settings').Settings)=>Promise<void>} [onSaved] */
+ async save(settings,local,expected,reason='editor-save',onSaved=async()=>{}){return this.serial(async()=>{
   const next=validate(settings),current=await this.settings(),old=await this.local();
   // 停止状態やキャッシュ更新だけで、入力中の設定を競合扱いにしない。
   const signature=(s,l)=>JSON.stringify([s,providerOf(l),Object.keys(PROVIDERS).map(id=>profileOf(l,id))]);
@@ -37,7 +39,7 @@ export class Controller{
    if(reason==='editor-save'&&last?.reason===reason&&elapsed>=0&&elapsed<300000)history[0]={...last,lastChanged:now};
    else history.unshift({time:now,lastChanged:now,reason,settings:current});
   }
-  this.generation++;this.pages.clear();await this.store.set({[SETTINGS]:next,[LOCAL]:saved,[HISTORY]:history.slice(0,10)});return this.state(true);
+  this.generation++;this.pages.clear();await this.store.set({[SETTINGS]:next,[LOCAL]:saved,[HISTORY]:history.slice(0,10)});await onSaved(next);return this.state(true);
  });}
  async resume(){return this.serial(async()=>{this.generation++;this.pages.clear();const old=await this.local();await this.store.set({[LOCAL]:{...old,revision:(old.revision||0)+1,stopped:false,failures:0,blockedUntil:0,lastError:'',errorAdvice:''}});return this.state(true);});}
  async clear(){return this.serial(async()=>{this.generation++;this.pages.clear();const old=await this.local();await this.store.set({[CACHE]:{},[LOCAL]:{...old,revision:(old.revision||0)+1}});});}
@@ -52,6 +54,9 @@ export class Controller{
   catch{check={ok:false,time:Date.now()};}
   finally{if(this.checkId===checkId)this.checkId=null;await this.serial(async()=>{const latest=await this.local();if(generation!==this.generation||connectionIdentity(latest)!==identity||profileOf(latest).key!==key)return;await this.store.set({[LOCAL]:{...latest,verifying:false,connectionCheck:check||null}});});}
  }
+ // Chrome同期と設定編集は同じ書き込み列で処理し、同期の変更も古いAI応答を無効化する。
+ /** @template T @param {()=>Promise<T>} fn @returns {Promise<T>} */
+ async settingsTransaction(fn){return this.serial(async()=>{const before=JSON.stringify(await this.settings());try{return await fn();}finally{if(before!==JSON.stringify(await this.settings())){this.generation++;this.pages.clear();}}});}
  async invalidate(){return this.serial(async()=>{this.generation++;this.pages.clear();});}
  async cacheRead(key){const entry=((await this.store.get(CACHE))[CACHE]||{})[key];return entry&&entry.time<=Date.now()+60000&&Date.now()-entry.time<(entry.skipped?600000:TTL)?entry:null;}
  async cacheWrite(key,entry,generation){return this.serial(async()=>{

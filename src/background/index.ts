@@ -1,6 +1,6 @@
 import {updateToolbarBadge} from './badge';
 import {t} from "../shared/i18n";
-import {SyncStore} from './sync-store';
+import {SyncStore,SYNC_ALARM} from './sync-store';
 import {Controller} from './controller.js';
 import {aiError} from '../shared/ai-errors.js';
 import {SETTINGS,LOCAL} from '../shared/settings';
@@ -10,8 +10,8 @@ const controller=new Controller(chrome.storage.local,async(url:string,options:Re
  try{const r=await fetch(url,{...options,signal:abort.signal,credentials:'omit',redirect:'error'});const text=await r.text();if(text.length>6000000)throw aiError('','size');return {status:r.status,text,retry:r.headers.get('Retry-After')};}
  catch(e){if(e&&typeof e==='object'&&'kind'in e)throw e;throw aiError('',abort.signal.aborted?'timeout':'network');}finally{clearTimeout(timer);}
 },chrome.permissions);
-const syncStore=new SyncStore();
-async function reconcileSync(){const before=JSON.stringify(await controller.settings());await syncStore.reconcile();if(before!==JSON.stringify(await controller.settings()))await controller.invalidate();}
+const syncStore=new SyncStore(fn=>controller.settingsTransaction(fn));
+async function reconcileSync(){await syncStore.reconcile();}
 
 async function xTabs(){return (await chrome.tabs.query({url:['https://x.com/*','https://twitter.com/*']})).filter(t=>t.id!==undefined);}
 async function pageData(tabId?:number,type='SNAPSHOT'){
@@ -38,7 +38,7 @@ async function handle(m:any,sender:chrome.runtime.MessageSender){
  if(m.type==='OPEN')return openDashboard(sender.tab?.id);
  if(m.type==='BADGE')return updateToolbarBadge(m.count,sender,m.error);
  if(access!=='admin')throw Error(t("m_6c5feecbc21d"));
- if(m.type==='SAVE'){const old=await controller.local();await controller.save(m.settings,m.local,m.expected,['editor-save','json-import','history-restore'].includes(m.reason)?m.reason:'editor-save');await syncStore.queue(async()=>{await syncStore.recordLocal(await controller.settings());await reconcileSync();});const next=await controller.local();if(connectionIdentity(old)!==connectionIdentity(next)||profileOf(old).key!==profileOf(next).key)await controller.verify();return controller.state(true);}
+ if(m.type==='SAVE'){const old=await controller.local();await controller.save(m.settings,m.local,m.expected,['editor-save','json-import','history-restore'].includes(m.reason)?m.reason:'editor-save',next=>syncStore.recordLocal(next));await syncStore.queue(()=>reconcileSync());const next=await controller.local();if(connectionIdentity(old)!==connectionIdentity(next)||profileOf(old).key!==profileOf(next).key)await controller.verify();return controller.state(true);}
  if(m.type==='CLEAR')return controller.clear();
  if(m.type==='RESUME')return controller.resume();
  if(m.type==='CLOSE'){if(sender.tab?.id!==undefined)await chrome.tabs.remove(sender.tab.id);return null;}
@@ -46,7 +46,7 @@ async function handle(m:any,sender:chrome.runtime.MessageSender){
  if(m.type==='SYNC_STATUS')return syncStore.state();
  if(m.type==='SYNC'){await syncStore.queue(()=>reconcileSync());return syncStore.state();}
  if(m.type==='SYNC_ENABLED'){if(typeof m.enabled!=='boolean')throw Error(t("m_495dc1760a51"));await syncStore.queue(async()=>{await syncStore.setEnabled(m.enabled);await reconcileSync();});return syncStore.state();}
- if(m.type==='SYNC_RESOLVE'){await syncStore.queue(async()=>{await syncStore.resolve(m.doc);await controller.invalidate();});return syncStore.state();}
+ if(m.type==='SYNC_RESOLVE'){await syncStore.queue(async()=>{await syncStore.resolve(m.doc);});return syncStore.state();}
  if(m.type==='REPORT'){
   const data=await pageData(m.tabId),id=crypto.randomUUID();
   const all=await chrome.storage.session.get(null),reports=Object.keys(all).filter(k=>k.startsWith('xpf_report:'));
@@ -63,5 +63,6 @@ chrome.action.onClicked.addListener(tab=>{void openDashboard(tab.id);});
 chrome.storage.local.setAccessLevel({accessLevel:'TRUSTED_CONTEXTS'}).catch(()=>{});
 chrome.storage.onChanged.addListener((changes,area)=>{if(area!=='local'||!(SETTINGS in changes||LOCAL in changes))return;void chrome.tabs.query({url:['https://x.com/*','https://twitter.com/*']}).then(tabs=>{for(const tab of tabs)if(tab.id!==undefined)void chrome.tabs.sendMessage(tab.id,{type:'REFRESH'}).catch(()=>{});});});
 
+chrome.alarms.onAlarm.addListener(alarm=>{if(alarm.name===SYNC_ALARM)void syncStore.queue(()=>reconcileSync());});
 chrome.storage.onChanged.addListener((_changes,area)=>{if(area==='sync')void syncStore.queue(()=>reconcileSync());});
 void syncStore.queue(()=>reconcileSync());

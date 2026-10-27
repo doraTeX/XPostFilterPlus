@@ -2,10 +2,12 @@ import {t} from "../shared/i18n";
 import {SETTINGS,HISTORY,parseDoc,newDoc,heads,encodeDoc,decodeRemote,assertQuota,type Doc,type Settings} from '../shared/sync';
 import {validate,defaults} from '../shared/settings';
 const STATE='xpf_sync_state';
+export const SYNC_ALARM='xpf-sync';
 type State={device:string;enabled:boolean;doc:Doc|null;pending:boolean;conflicts:Doc[];message:string};
 export class SyncStore{
  private chain=Promise.resolve();
- queue<T>(fn:()=>Promise<T>):Promise<T>{const result=this.chain.then(fn,fn);this.chain=result.then(()=>{},()=>{});return result;}
+ constructor(private transaction:<T>(fn:()=>Promise<T>)=>Promise<T>=fn=>fn()){}
+ queue<T>(fn:()=>Promise<T>):Promise<T>{const run=()=>this.transaction(fn),result=this.chain.then(run,run);this.chain=result.then(()=>{},()=>{});return result;}
  async state():Promise<State>{
   const s:State=(await chrome.storage.local.get(STATE))[STATE]??{device:crypto.randomUUID(),enabled:false,doc:null,pending:false,conflicts:[],message:t("m_46c87f5d6b04")};
   // ローカルの同期履歴にも、新しい設定項目の既定値を補う。
@@ -33,8 +35,13 @@ export class SyncStore{
   s.message=s.enabled?t("m_c44d128a92ff"):t("m_46c87f5d6b04");
   await this.remember(s);
  }
+ async schedule(enabled:boolean){
+  if(!chrome.alarms)return;
+  if(!enabled){await chrome.alarms.clear(SYNC_ALARM);return;}
+  if(!await chrome.alarms.get(SYNC_ALARM))await chrome.alarms.create(SYNC_ALARM,{delayInMinutes:1,periodInMinutes:5});
+ }
  async reconcile(){
-  const s=await this.state();await this.remember(s);if(!s.enabled)return;
+  const s=await this.state();await this.remember(s);await this.schedule(s.enabled);if(!s.enabled)return;
   try{
    const all=await chrome.storage.sync.get(null),remote=await decodeRemote(all);
    if(s.pending&&s.doc){
