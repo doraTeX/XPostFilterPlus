@@ -18,7 +18,7 @@ export function connection(local={}){
   if(!['clef','clef-flash'].includes(p.model))throw Error(t("m_7112f0b36b9e"));
   url=`https://api.cloudflare.com/client/v4/accounts/${p.accountId}/ai/run/@cf/cloudflare/${p.model}`;
  }
- return {provider,...p,url,key:p.key,timeout:30000};
+ return {provider,...p,url,key:p.key};
 }
 export function connectionReady(local){try{const c=connection(local);return !!c.key.trim();}catch{return false;}}
 export function connectionIdentity(local){try{const c=connection(local);return JSON.stringify([c.provider,c.url,c.model]);}catch{const p=local.profiles?.[local.provider]||{};return JSON.stringify([local.provider,p.baseUrl,p.model,p.accountId]);}}

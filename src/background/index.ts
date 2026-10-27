@@ -6,7 +6,7 @@ import {aiError} from '../shared/ai-errors.js';
 import {SETTINGS,LOCAL} from '../shared/settings';
 import {connectionOrigin,connectionIdentity,profileOf} from '../shared/ai.js';
 const controller=new Controller(chrome.storage.local,async(url:string,options:RequestInit)=>{
- const abort=new AbortController(),timer=setTimeout(()=>abort.abort(),25000);
+ const abort=new AbortController(),timer=setTimeout(()=>abort.abort(),30000);
  try{const r=await fetch(url,{...options,signal:abort.signal,credentials:'omit',redirect:'error'});const text=await r.text();if(text.length>6000000)throw aiError('','size');return {status:r.status,text,retry:r.headers.get('Retry-After')};}
  catch(e){if(e&&typeof e==='object'&&'kind'in e)throw e;throw aiError('',abort.signal.aborted?'timeout':'network');}finally{clearTimeout(timer);}
 },chrome.permissions);
