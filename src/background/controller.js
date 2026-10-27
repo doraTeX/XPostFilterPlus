@@ -3,6 +3,7 @@ import {defaults,validate,SETTINGS,LOCAL,CACHE,HISTORY} from '../shared/settings
 import {PROVIDERS,providerOf,profileOf,connection,connectionReady,connectionIdentity,connectionOrigin,requestBody,readDecision} from '../shared/ai.js';
 import {aiError,httpError,failureState} from '../shared/ai-errors.js';
 const TTL=7*86400000;
+export function decisionQuestions(conditions){return Object.fromEntries(conditions.map((condition,i)=>['q'+i,{type:'noul',instructions:t('m_f08dedb7fdef',[condition]),criteria:{true:t('m_e95ab486df20'),false:t('m_64dcac62247a')}}]));}
 export class Controller{
  /** @param {any} store @param {any} transport @param {any} permissions */
  constructor(store,transport,permissions){this.store=store;this.transport=transport;this.permissions=permissions;this.generation=0;this.inflight=new Map();this.active=0;this.waiters=[];this.pages=new Map();this.writes=Promise.resolve();this.checkId=null;}
@@ -75,7 +76,7 @@ export class Controller{
   if(!config.enabled||!config.aiEnabled||!config.aiConditions.length)return {inactive:true};
   if(!connectionReady(local))throw aiError(local.provider,'credentials');
   if(this.checkId&&local.verifying||local.stopped||Date.now()<(local.blockedUntil||0))return {paused:true};
-  const key=await this.hash(JSON.stringify([1,connectionIdentity(local),post.id,post.text,config.aiConditions]));
+  const key=await this.hash(JSON.stringify([2,connectionIdentity(local),post.id,post.text,decisionQuestions(config.aiConditions)]));
   const cached=await this.cacheRead(key);if(cached&&(cached.skipped||Array.isArray(cached.scores)&&cached.scores.length===config.aiConditions.length&&cached.scores.every(x=>typeof x==='number'&&Number.isFinite(x)&&x>=0&&x<=1)))return {...cached,cached:true,attempted:false};
   if(this.inflight.has(key))return this.inflight.get(key).then(value=>({...value,shared:true,attempted:false}));
   const generation=this.generation;
@@ -92,7 +93,7 @@ export class Controller{
   
   if(!verifying){const count=this.pages.get(page)||0;if(count>=config.aiRequestLimit)return {limited:true};this.pages.set(page,count+1);if(this.pages.size>200)this.pages.delete(this.pages.keys().next().value);}
   const c=connection(local),conditions=config.aiConditions;
-  const questions=Object.fromEntries(conditions.map((condition,i)=>['q'+i,{type:'noul',instructions:t("m_f08dedb7fdef",[condition]),criteria:{true:t("m_e95ab486df20"),false:t("m_64dcac62247a")}}]));
+  const questions=decisionQuestions(conditions);
   try{
    if(!await this.permissions.contains({origins:[connectionOrigin(provider)]}))throw aiError(provider,'permission');
    const r=await this.transport(c.url,{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+c.key},body:JSON.stringify(requestBody(c,post.text,questions))});

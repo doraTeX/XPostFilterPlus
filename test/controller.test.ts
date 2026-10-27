@@ -14,6 +14,18 @@ function setup(provider='jev',conditions=['宣伝']){
  return {controller,data,transport,permissions};
 }
 const post={id:'123',text:'商品を購入してください'};
+it('指示文の言語が変わると別のキャッシュを使い、戻すと元の結果を使う',async()=>{
+ const {controller,transport}=setup();
+ try{
+  document.documentElement.lang='ja';await controller.decide(post,'p');
+  document.documentElement.lang='en';expect((await controller.decide(post,'p')).cached).toBe(false);
+  expect(transport).toHaveBeenCalledTimes(2);
+  const instructions=transport.mock.calls.map(c=>JSON.parse(c[1].body).questions.q0.instructions);
+  expect(instructions[0]).toContain('次の条件');expect(instructions[1]).toContain('Does this post');
+  document.documentElement.lang='ja';expect((await controller.decide(post,'p')).cached).toBe(true);
+  expect(transport).toHaveBeenCalledTimes(2);
+ }finally{document.documentElement.lang='ja';}
+});
 it.each(['jev','openai','clef'])('%sの接続先と認証を限定し、本文と条件のみ送信する',async(provider)=>{
  const {controller,transport}=setup(provider);const result=await controller.decide(post,'page');expect(result.scores).toEqual([.94]);
  const [url,options]=transport.mock.calls[0];expect(url).toContain(provider==='jev'?'api.typesafe.ai':provider==='clef'?'api.cloudflare.com':'api.openai.com');
