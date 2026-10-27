@@ -14,3 +14,13 @@ The project is independent of Y!News Filter Plus and reuses its relevant behavio
 Settings apply across X tabs. Usage, temporary show-all mode, and decision details are automatically associated with the X tab from which settings were opened.
 
 Posts are hidden with an extension-owned attribute. Removing an override or disposing the engine removes only that attribute and preserves other extensions' inline styles and flags. Responses from before a settings change or cache clear are not adopted as new decisions.
+
+Keyword rules are compiled only when matching settings change. Normalized text is cached for up to 500 post identities; rate decisions are retained for up to 2,000 post identities in the current timeline view. Temporary keyword overrides skip to the next matching rule without advancing the overridden rule's counter.
+
+Sync operations and settings saves share the controller's write queue. Local sync revisions are recorded in the same settings-save operation. A persistent Chrome alarm retries pending sync and checks remote changes every five minutes while enabled. Background caches include the localized question instructions; regular dashboard polling omits decision rows. Separate report tabs retain the latest five session snapshots (up to 6 MB in total) so reloading a report works.
+
+The count chip and toolbar open a native modal dialog in the current X tab, styled like Y!News Filter Plus. Its closed Shadow DOM holds an iframe for the existing extension-origin dashboard. Only the dashboard HTML is newly exposed to X/Twitter; credentials remain in the trusted extension frame and background. A per-tab, unpredictable session token authorizes embedded dashboard requests. Unauthorized frames cannot read or modify settings. Closing the modal revokes its token and leaves the X tab open; closing the tab or leaving X/Twitter also revokes the grant. Navigating within X keeps the dialog usable.
+
+The dialog forwards Escape to the dashboard, which keeps the dialog open while an input field is focused and otherwise saves before closing. The dashboard performs browser permission requests directly from the user click; the background checks the actual granted permission before verification. Confirmation dialogs and requested TSV copying run in the originating top-level content script, without sending credentials through that route. Decision rows include a validated author handle and canonical X profile link; author metadata is not added to provider requests.
+
+Chrome reference: [web-accessible resources](https://developer.chrome.com/docs/extensions/reference/manifest/web-accessible-resources).

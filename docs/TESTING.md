@@ -2,11 +2,11 @@
 
 ## Automated checks
 
-The X extension has 80 passing tests covering extraction, DOM reuse, routing, temporary overrides, tooltip controls, spinner state, token accounting, provider requests, caches, key verification, error scopes, settings persistence, sync conflicts, bilingual UI, safe report rendering, and report filters.
+The X extension has 126 passing tests covering extraction, DOM reuse, routing, temporary overrides, tooltip controls, spinner state, token accounting, provider requests, caches, key verification, error scopes, settings persistence, sync conflicts, bilingual UI, safe report rendering, and report filters.
 
 `npm run check:i18n` verifies the English and Japanese catalogs and placeholders. `npm run build:extension` checks TypeScript and creates the unpacked extension. Packaging verifies manifest identity and scans for unintended local paths or unrelated endpoints.
 
-The Y!News Filter Plus provider-label correction has 45 passing engine tests, including newly added checks for disabled AI, unrequested rows, requests in progress, and cached results.
+The Y!News Filter Plus provider-label correction has 47 passing engine tests, including newly added checks for disabled AI, unrequested rows, requests in progress, and cached results.
 
 ## Chrome checks — 2026-10-27
 
@@ -27,3 +27,25 @@ Reload both the extension and X after rebuilding; an old registered loader can o
 ## Extension reload recovery
 
 Regression tests simulate both synchronous and asynchronous context invalidation, a missing runtime ID, failed translation APIs, locale preservation, one-time reload notices, stopping observers and timers, and ignoring the completion of old in-flight requests. Ordinary per-post API failures remain distinct from extension invalidation.
+
+## Audit follow-up — 2026-10-27
+
+Regression tests cover stable rate decisions across repeated scans and virtualized cell removal, keyword override fallback, normalization reuse, lightweight polling with explicit detail retrieval, localized-prompt cache separation, sync retries through alarms, serialization of sync and editor writes, conflict protection, and report reloads with retention limited to the latest five reports.
+
+These tests use DOM fixtures, mocked Chrome APIs, and mocked provider responses. Live provider calls and Chrome sync between physical devices were not performed as part of this audit follow-up. The manifest adds `alarms` solely for sync retries and periodic reconciliation while sync is enabled. Icons were regenerated at 16, 48, and 128 pixels and visually inspected after adding the superscript plus sign.
+
+The follow-up audit adds regression coverage for preserving keyword matches and rate decisions while filtering is disabled or all posts are temporarily shown, including resuming filtering. Store privacy-field drafts are in `store-assets/privacy-tab-en.txt` and `privacy-tab-ja.txt`; both policy versions explain every declared permission.
+
+## Settings dialog and author column — 2026-10-27
+
+All 124 tests across 10 files pass. Coverage includes modal reuse, keeping the dialog open on Escape while input fields are focused, IME handling, saving before closing, preserving failed edits, keeping the original tab open, per-tab authorization and revocation for embedded settings, credential isolation, confirmation and clipboard forwarding, and checking actual Chrome permissions.
+
+Author extraction uses the posting account's permalink or User-Name links and excludes quoted authors. Reports place a validated profile link in column two; TSV and Console include the handle. Author metadata is not added to provider requests.
+
+Local previews in Chrome verified Japanese and English modal overlays, returning to the original page with Escape and Close, and the Japanese author column and profile URL. These previews use mock data; they do not establish that the installed extension frame or live AI calls work on the real X site.
+
+## Pause shortcut (2026-10-27)
+
+X: 126 tests pass. Y!News: 120 tests pass. Regression coverage verifies that the chip shortcut and settings button share the same pause state, resume the original rules without changing saved settings, and suspend both keyword and AI exclusions. The Y!News check also covers removing and restoring highlights and updating the settings button through the menu command.
+
+Chrome local previews verified the red pause / green play controls and visible hide/show transitions in both extensions. In Y!News, the preview also verified that highlights disappear while paused and return on resume, including resuming from the settings dialog. These checks use mock responses and do not make live API calls.

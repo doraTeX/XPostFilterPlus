@@ -2,25 +2,25 @@
 
 [日本語](README.ja.md)
 
-A Chrome extension that hides X posts using keyword matching and AI semantic classification. Version 0.1.0.
+An unofficial Chrome extension that hides X posts using keyword matching and AI semantic classification. Version 0.1.0. Not affiliated with X Corp.
 
 ## Install
 
 1. Open `chrome://extensions` and enable Developer mode.
 2. Select **Load unpacked**, then choose this project's **dist** folder.
-3. Reload X. Open settings from the extension icon or the hidden-post count chip.
+3. Reload X. Open settings from the extension icon or the hidden-post count chip. Settings appear as a modal dialog over the current X page.
 
 After rebuilding, reload both the extension and the X page.
 
 ## Use
 
-Enter one exclusion keyword per line. Settings save automatically and apply to all X tabs. The matching options handle case, full-width forms, accents, similar symbols, middle dots, spaces, and punctuation. Per-line `case` and `rate` options follow Y!News Filter Plus.
+Enter one exclusion keyword per line. Settings save automatically and apply to all X tabs. The matching options handle letter case, accents, similar symbols, spaces, and punctuation. Per-line `case` and `rate` options follow Y!News Filter Plus.
 
 For semantic filtering, enable **Use AI classification**, add exclusion conditions, select a provider, and enter its credentials. Supported providers are Jev, OpenAI Decisions, and Cloudflare Clef / Clef-flash. Grant Chrome's connection permission for the chosen provider. API fees follow your agreement with the provider.
 
-Only the post's own text is classified. Quote posts and link cards are excluded from that text. The count chip opens settings; hovering shows condition tags. Click a tag to temporarily disable that condition. Settings also let you temporarily show all posts in the originating X tab.
+Only the post's own text is classified. Quote posts and link cards are excluded from that text. For collapsed long posts, only the displayed text is evaluated; expanding the post triggers a new decision. The count chip opens the settings dialog over the current timeline; hovering shows condition tags. Click a tag to temporarily disable that condition. Hovering also reveals a red pause button at the top left of the chip. Click it to temporarily show all posts; the button turns green and resumes filtering when clicked again. This shares the state of Show all temporarily in settings for the originating X tab. Exclusion rates keep the same result for a post while scrolling; if a keyword is temporarily disabled, matching continues with the next keyword.
 
-The settings page follows Y!News Filter Plus: keyword cleanup and sorting, AI status and usage, decision details, cache clearing, optional Chrome sync, JSON backup, and history restoration. Usage and decision details belong to the X tab from which settings were opened. Configuration applies across X tabs.
+The settings page follows Y!News Filter Plus: keyword cleanup and sorting, AI status and usage, decision details, cache clearing, optional Chrome sync, JSON backup, and history restoration. Usage and decision details belong to the X tab from which settings were opened. Configuration applies across X tabs. Escape outside input fields and the Close button both wait for unsaved edits before dismissing the dialog; failed saves leave the input visible. Escape while an input field is focused leaves the dialog open. Decision reports include an author column linking to the posting account. Regular status updates fetch counts and usage only; report rows are fetched when requested.
 
 Invalid keys, missing permissions, exhausted credit, and provider-wide failures pause AI processing and show a pink AI block with an explanation. Post-specific errors and refusals are skipped without interrupting other posts. Keyword filtering continues.
 
@@ -41,6 +41,10 @@ npm run package
 
 `dist` is the unpacked extension; distribution ZIPs are in `release`. `npm run preview` serves a mock settings UI at `http://127.0.0.1:4178/preview/index.html`. Add `?lang=en` for English or `?lang=ja` for Japanese. Add `&state=unset` to inspect the unconfigured state.
 
+Chrome sync uses the `alarms` permission to retry failed synchronization and check for changes every five minutes while enabled. AI decision caches are separated by provider, model, post text, and the actual localized instructions.
+
 English and Japanese resources must be developed together. `npm run check:i18n` verifies keys and placeholders in both catalogs. UI behavior and styles reuse Y!News Filter Plus; Chrome localization follows RakuFill.
 
 See the [privacy policy](docs/PRIVACY_POLICY.md), [test record](docs/TESTING.md), and [MIT license](LICENSE). Automated fixture tests do not establish real-provider accuracy; live browser checks are recorded separately.
+
+Store submission drafts: [listing](docs/STORE_LISTING.md) and [privacy fields](store-assets/privacy-tab-en.txt).
