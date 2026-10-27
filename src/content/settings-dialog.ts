@@ -15,7 +15,8 @@ export function createSettingsDialog(getURL:(path:string)=>string){
   const dialog=document.createElement('dialog'),frame=document.createElement('iframe');dialog.setAttribute('aria-label',t('actionTitle'));frame.title=t('actionTitle');frame.allow='clipboard-write';frame.referrerPolicy='no-referrer';
   panel={host,dialog,frame,token,origin:url.protocol+'//'+url.host,previous};
   dialog.addEventListener('cancel',event=>{event.preventDefault();requestClose();});
-  dialog.addEventListener('close',()=>{if(panel?.dialog===dialog)dispose();});
+  // cancelを取り消せない連続Escでも、設定フレームは保存完了まで保持する。
+  dialog.addEventListener('close',()=>{if(panel?.dialog===dialog){dialog.showModal();frame.focus();requestClose();}});
   dialog.append(frame);root.append(style,dialog);document.documentElement.append(host);frame.src=url.href;dialog.showModal();frame.focus();return {opened:true};
  }
  function close(token:unknown){if(panel?.token!==token)return {closed:false};dispose();return {closed:true};}

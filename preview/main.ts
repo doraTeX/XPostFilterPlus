@@ -2,7 +2,7 @@ import {t} from '../src/shared/i18n';
 import {mountDashboard} from '../src/dashboard/ui';
 import {defaults} from '../src/shared/settings';
 import {bindCloseEvents} from '../src/dashboard/close-events';
-const params=new URL(location.href).searchParams,en=params.get('lang')==='en',unset=params.get('state')==='unset';
+const params=new URL(location.href).searchParams,en=params.get('lang')==='en',unset=params.get('state')==='unset',failSave=params.get('save')==='fail';
 document.documentElement.lang=en?'en':'ja';document.getElementById('preview-banner')!.textContent=t('previewNotice');
 const embedded=window.parent!==window;document.documentElement.classList.toggle('embedded',embedded);if(embedded)document.getElementById('preview-banner')!.hidden=true;
 const state:any={settings:{...defaults,rows:en?['spoiler','giveaway']:['ネタバレ','プレゼント企画'],aiEnabled:true,aiConditions:en?['Posts mocking or insulting other people','Promotions encouraging a purchase']:['他人を嘲笑・罵倒しているポスト','商品の購入を促す宣伝']},local:{provider:'jev',profiles:unset?{}:{jev:{key:'preview-placeholder'}}},history:[],ai:{ready:!unset,configured:!unset,permitted:!unset,stopped:false,blockedUntil:0}};
@@ -11,7 +11,7 @@ const sync:any={enabled:false,message:en?'Chrome sync is off':'Chrome同期は�
 void mountDashboard(document.getElementById('app')!,{call:async(type,data)=>{
  if(type==='PAGE')return structuredClone(page);if(type==='PAUSE'){page.paused=!page.paused;return structuredClone(page);}
  if(type==='CLOSE'&&embedded){parent.postMessage({type:'XPF_PREVIEW_CLOSED'},location.origin);return null;}
- if(type==='SAVE'){state.settings=data!.settings;state.local=data!.local;state.ai.ready=state.ai.configured=state.ai.permitted=!!state.local.profiles[state.local.provider]?.key;}
+ if(type==='SAVE'){if(failSave)throw Error(en?'Preview save failure':'プレビューの保存失敗');state.settings=data!.settings;state.local=data!.local;state.ai.ready=state.ai.configured=state.ai.permitted=!!state.local.profiles[state.local.provider]?.key;}
  if(type==='PERMISSION')return true;
  if(type==='SYNC_STATUS'||type==='SYNC')return structuredClone(sync);
  if(type==='SYNC_ENABLED'){sync.enabled=!!data!.enabled;sync.message=en?(sync.enabled?'Chrome sync is on':'Chrome sync is off'):(sync.enabled?'Chrome同期は有効です':'Chrome同期は停止中です');return structuredClone(sync);}

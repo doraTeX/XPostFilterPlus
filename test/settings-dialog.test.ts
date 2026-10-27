@@ -32,3 +32,11 @@ it('確認ダイアログは元ページで表示し、トークンが不正な�
  expect(await editor.action('CONFIRM_SETTINGS','wrong','消去しますか？')).toEqual({ok:false});expect(confirm).not.toHaveBeenCalled();
  expect(await editor.action('CONFIRM_SETTINGS','test-token','消去しますか？')).toEqual({ok:true,value:true});expect(confirm).toHaveBeenCalledWith('消去しますか？');
 });
+
+it('cancelを取り消せない連続Escでもフレームを破棄せず、保存後の閉じる応答を待つ',()=>{
+ const previous=document.createElement('button');document.body.append(previous);previous.focus();editor.open(url);
+ const host=document.getElementById('xpf-settings-host')!,root=host.shadowRoot!,dialog=root.querySelector('dialog')!,frame=root.querySelector('iframe')!,post=vi.fn();Object.defineProperty(frame,'contentWindow',{value:{postMessage:post}});
+ dialog.dispatchEvent(new Event('cancel',{cancelable:false}));dialog.close();
+ expect(dialog.open).toBe(true);expect(host.isConnected).toBe(true);expect(root.querySelector('iframe')).toBe(frame);expect(frame.src).toBe(url);expect(post).toHaveBeenCalledTimes(2);
+ editor.close('test-token');expect(host.isConnected).toBe(false);expect(document.activeElement).toBe(previous);
+});
