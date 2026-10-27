@@ -14,10 +14,10 @@ const syncStore=new SyncStore(fn=>controller.settingsTransaction(fn));
 async function reconcileSync(){await syncStore.reconcile();}
 
 async function xTabs(){return (await chrome.tabs.query({url:['https://x.com/*','https://twitter.com/*']})).filter(t=>t.id!==undefined);}
-async function pageData(tabId?:number,type='SNAPSHOT'){
+async function pageData(tabId?:number,type='SNAPSHOT',details=false){
  const tabs=await xTabs(),tab=tabs.find(t=>t.id===tabId)||(tabId===undefined?[...tabs].sort((a,b)=>(b.lastAccessed||0)-(a.lastAccessed||0))[0]:undefined);
  if(!tab)return {tabs:tabs.map(t=>({id:t.id,title:t.title||'X',url:t.url})),connected:false,message:t("m_5d57e446a85e"),rows:[]};
- try{const data=await chrome.tabs.sendMessage(tab.id!,{type});if(!data)throw Error();return {...data,tabId:tab.id,connected:true,tabs:tabs.map(t=>({id:t.id,title:t.title||'X',url:t.url}))};}
+ try{const data=await chrome.tabs.sendMessage(tab.id!,{type,details});if(!data)throw Error();return {...data,tabId:tab.id,connected:true,tabs:tabs.map(t=>({id:t.id,title:t.title||'X',url:t.url}))};}
  catch{return {tabId:tab.id,connected:false,tabs:tabs.map(t=>({id:t.id,title:t.title||'X',url:t.url})),message:t("m_3a2b164bc69e"),rows:[]};}
 }
 async function openDashboard(tabId?:number){
@@ -42,13 +42,13 @@ async function handle(m:any,sender:chrome.runtime.MessageSender){
  if(m.type==='CLEAR')return controller.clear();
  if(m.type==='RESUME')return controller.resume();
  if(m.type==='CLOSE'){if(sender.tab?.id!==undefined)await chrome.tabs.remove(sender.tab.id);return null;}
- if(m.type==='PAGE'||m.type==='PAUSE'){if(m.tabId!==undefined&&!Number.isInteger(m.tabId))throw Error(t("m_18e5f67c26de"));return pageData(m.tabId,m.type==='PAUSE'?'PAUSE':'SNAPSHOT');}
+ if(m.type==='PAGE'||m.type==='PAUSE'){if(m.tabId!==undefined&&!Number.isInteger(m.tabId))throw Error(t("m_18e5f67c26de"));return pageData(m.tabId,m.type==='PAUSE'?'PAUSE':'SNAPSHOT',m.details===true);}
  if(m.type==='SYNC_STATUS')return syncStore.state();
  if(m.type==='SYNC'){await syncStore.queue(()=>reconcileSync());return syncStore.state();}
  if(m.type==='SYNC_ENABLED'){if(typeof m.enabled!=='boolean')throw Error(t("m_495dc1760a51"));await syncStore.queue(async()=>{await syncStore.setEnabled(m.enabled);await reconcileSync();});return syncStore.state();}
  if(m.type==='SYNC_RESOLVE'){await syncStore.queue(async()=>{await syncStore.resolve(m.doc);});return syncStore.state();}
  if(m.type==='REPORT'){
-  const data=await pageData(m.tabId),id=crypto.randomUUID();
+  const data=await pageData(m.tabId,'SNAPSHOT',true),id=crypto.randomUUID();
   const all=await chrome.storage.session.get(null),reports=Object.keys(all).filter(k=>k.startsWith('xpf_report:'));
   if(reports.length>=5)await chrome.storage.session.remove(reports.slice(0,reports.length-4));
   await chrome.storage.session.set({['xpf_report:'+id]:{rows:data.rows,time:Date.now(),url:data.url||'',title:data.title||''}});

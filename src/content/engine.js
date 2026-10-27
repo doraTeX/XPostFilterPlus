@@ -48,7 +48,7 @@ export async function start(api){
   hide(record,reasons);
  }
  function systemError(){if(state.ai.verifying)return '';return settings.aiEnabled?(!state.ai.ready?(state.ai.message||t("m_a5a0977a526d")):state.ai.stopped?state.ai.message:Date.now()<(state.ai.blockedUntil||0)?state.ai.message:''):'';}
- function snapshot(){
+ function snapshot(includeRows=true){
   const live=[...records.values()].filter(r=>r.article.isConnected),hiddenWords=new Set();
   const summary={target:live.length,hidden:0,keyword:0,aiHidden:0,cached:0,pending:0,prior:0,fresh:0,uniquePrior:0,uniqueFresh:0};
   const prior=new Set(),fresh=new Set(),positive=new Map(),negative=new Map();
@@ -60,7 +60,7 @@ export async function start(api){
   }
   summary.uniquePrior=prior.size;summary.uniqueFresh=fresh.size;
   const rows=[];
-  for(const r of observed.values()){
+  if(includeRows)for(const r of observed.values()){
    const entry=results.get(identityKey(r.post)),word=r.keywordReasons||[],conditions=word.length?word:settings.aiConditions.length?settings.aiConditions:[''];
    for(const [i,condition]of conditions.entries()){
     let reason=word.length?t("m_e0b14ab0f48f"):entry?.skipped==='refusal'?t("m_dbb084c9625c"):entry?.skipped?t("m_edd92fd89aaf")+entry.skipped:entry?.scores?t("m_f42765775fd4"):inflight.has(identityKey(r.post))?t("m_4d4581514a7a"):limited?t("m_6825ae3ac081"):!settings.aiEnabled?t("m_4603c00396af"):systemError()||t("m_713c6d0f3a90");
@@ -134,7 +134,7 @@ export async function start(api){
  observer.observe(document.body,{childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:['href','data-testid','aria-selected']});
  const onScroll=()=>schedule(),onFocus=()=>void refresh();window.addEventListener('scroll',onScroll,{passive:true});window.addEventListener('focus',onFocus);
  const timer=setInterval(()=>{void refresh();},5000);
- stopListening=api.listen?.(m=>m?.type==='SNAPSHOT'?snapshot():m?.type==='PAUSE'?pause():void refresh())||(()=>{});
+ stopListening=api.listen?.(m=>m?.type==='SNAPSHOT'?snapshot(m.details!==false):m?.type==='PAUSE'?pause():void refresh())||(()=>{});
  stopDisconnectListening=api.onDisconnected?.(showConnectionError)||(()=>{});
  scan();
  return {scan,refresh,snapshot,pause,root,dispose(){disposed=true;epoch++;observer.disconnect();clearTimeout(scanTimer);clearInterval(timer);window.removeEventListener('scroll',onScroll);window.removeEventListener('focus',onFocus);stopListening();stopDisconnectListening();for(const r of records.values())r.container?.removeAttribute(HIDE);overlay.dispose();style.remove();}};

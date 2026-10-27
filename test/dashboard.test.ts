@@ -20,6 +20,14 @@ it('キャッシュ消去の確認でキャンセルし、承認時だけ消去�
  confirm.mockReturnValue(true);click(root,'判定キャッシュを消去');await vi.waitFor(()=>expect(api.call.mock.calls.some(c=>c[0]==='CLEAR')).toBe(true));expect(root.textContent).toContain('判定キャッシュを消去しました。');
 });
 it('設定JSONには認証情報を含めず、通常設定だけを保存する',()=>{const settings=validate({...defaults,local:{key:'secret'},key:'secret',rows:['語']});expect(JSON.stringify(settings)).not.toContain('secret');expect(settings.rows).toEqual(['語']);});
+it('定期更新で詳細行を取得せず、Console操作時には最新の行を取得する',async()=>{
+ const {root,api}=await setup();await dashboard!.refreshPage();
+ expect(api.call.mock.calls.filter(c=>c[0]==='PAGE').every(c=>c[1]?.details!==true)).toBe(true);
+ const output=vi.spyOn(console,'table').mockImplementation(()=>{});
+ click(root,'判定詳細をConsoleに出力');
+ await vi.waitFor(()=>expect(api.call).toHaveBeenCalledWith('PAGE',expect.objectContaining({details:true})));
+ expect(output).toHaveBeenCalled();
+});
 it('APIキーを削除したときだけ対象プロファイルのキーを空にする',async()=>{const {root,api}=await setup();vi.spyOn(window,'confirm').mockReturnValue(true);click(root,'APIキーを削除');await vi.waitFor(()=>expect(api.call.mock.calls.some(c=>c[0]==='SAVE')).toBe(true));const saved=api.call.mock.calls.find(c=>c[0]==='SAVE')![1];expect(saved.local.profiles.jev.key).toBe('');expect(saved.local.profiles.openai.key).toBe('saved-openai');});
 it('保存応答を待つ間に入力した新しいAPIキーを消さない',async()=>{
  let state:any={settings:{...defaults},local:{provider:'jev',profiles:{}},ai:{ready:false},history:[]},resolve:any;

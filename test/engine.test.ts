@@ -52,6 +52,12 @@ it('本文と照合設定が同じscanでは正規化を繰り返さない',asyn
  const before=normal.mock.calls.length;engine.scan();engine.scan();
  expect(normal).toHaveBeenCalledTimes(before);
 });
+it('定期取得用のsnapshotは行データを作らず、明示取得では行を返す',async()=>{
+ fixture();const {api}=mock();engine=await start(api);
+ expect(engine.snapshot(false).rows).toEqual([]);
+ expect(engine.snapshot(false).summary.target).toBe(1);
+ expect(engine.snapshot().rows).toHaveLength(1);
+});
 it('同じポストの別条件で除外されても、除外理由となった条件の行だけを色分けする',async()=>{
  const cell=fixture('判定対象'),{api,state}=mock([],true,async()=>({scores:[.61,.82,.8],provider:'jev'}));
  state.settings.aiConditions=['嘲笑・罵倒','攻撃的口調','別の条件'];engine=await start(api);await settle();
