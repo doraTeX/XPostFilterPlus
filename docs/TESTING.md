@@ -2,7 +2,7 @@
 
 ## Automated checks
 
-The X extension has 238 passing tests covering extraction, DOM reuse, routing, temporary overrides, tooltip controls, spinner state, token accounting, provider requests, caches, key verification, error scopes, settings persistence, sync conflicts, bilingual UI, safe report rendering, and report filters.
+The X extension has 245 passing tests covering extraction, DOM reuse, routing, temporary overrides, tooltip controls, spinner state, token accounting, provider requests, caches, key verification, error scopes, settings persistence, sync conflicts, bilingual UI, safe report rendering, and report filters.
 
 `npm run check:i18n` verifies the English and Japanese catalogs and placeholders. `npm run build:extension` checks TypeScript and creates the unpacked extension. Packaging verifies manifest identity and scans for unintended local paths or unrelated endpoints.
 
@@ -130,3 +130,12 @@ Audit information items G1/G2 require no change: hover listeners do lightweight 
 In the Chrome local X preview, Japanese search excluded condition-only matches, combined with the AI category checkbox (5/6 rows), and English search accepted uppercase text, showed zero condition-only matches, and restored all six rows after clearing. No live AI requests or changes to installed-extension settings were used.
 
 The search label and field now share one line directly below the source URL. Regression assertions cover placement and per-category search counts, including unchecked categories and count restoration after clearing. Chrome local preview confirmed the horizontal layout and all category counts changing to zero and back to the full matching counts.
+
+
+## Audit H1: shared long-post text — 2026-10-27
+
+Rows retain at most the first 1,000 characters. Full text is stored once per post in shared diagnostics: an existing submitted-text record is reused, while long posts with no submission record have a separate optional postText field. Search normalization is also cached per shared diagnostic object. Full text remains searchable after character 1,000, and long unsubmitted text is available only when the details are expanded; its submitted-text field remains empty. Existing saved reports fall back to submitted text or their row text when the new field is absent. The 6 MB report storage limit and lazy detail rendering remain in place. TSV/Console body columns return to the 1,000-character summary; existing submitted-text diagnostic columns retain their prior behavior.
+
+245 tests across 18 files pass, including ten-condition long posts with AI off, requests pending, fresh results, cached results, shared results, and keyword filtering. Assertions check a single serialized full-text copy per post, full-text search and count updates, safe expansion, and preservation of the absence of a submission record in Japanese and English. English/Japanese catalogs still match at 365 keys. TypeScript, extension build, and packaging pass.
+
+Chrome local preview at /preview/report.html?lang=ja&long=1 confirmed two matching condition rows for a term beyond the displayed prefix, full text in expanded details, and the unchanged “No submitted text recorded” state. No live provider requests were made. Y audit at HEAD 1a4acaa reports no new findings; no Y source change is required.

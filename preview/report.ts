@@ -1,8 +1,14 @@
-import {fillReport,type DecisionRow} from '../src/shared/report';
+import {fillReport,type DecisionRow,type Diagnostics} from '../src/shared/report';
 import {t} from '../src/shared/i18n';
 import '../src/report/style.css';
 const en=new URL(location.href).searchParams.get('lang')==='en';document.documentElement.lang=en?'en':'ja';document.getElementById('preview-banner')!.textContent=t('previewNotice');document.getElementById('title')!.textContent=t('reportTitle');
 const sample:DecisionRow={postId:'123',author:'sample_author',text:en?'Sample post text':'ポスト本文のサンプル',condition:en?'Promotions':'宣伝',provider:'Jev',model:'jev-1.13.0',score:.94,threshold:.8,source:en?'API':'このページで取得',display:en?'Hidden':'非表示',reason:en?'Classified':'判定済み',elapsedMs:230};
 const rows:DecisionRow[]=[{...sample,keyword:true,provider:'',model:'',score:null,threshold:null,condition:en?'keyword':'キーワード',source:en?'Keyword':'キーワード',kind:'keyword-excluded-row',elapsedMs:null},{...sample,kind:'excluded-row'},{...sample,providerPlanned:true,score:null,source:en?'Not fetched':'未取得',display:en?'Visible':'表示',reason:t('decisionWaitingViewport'),kind:'pending-row',aiUsage:'not-fetched',elapsedMs:null},{...sample,score:null,display:en?'Visible':'表示',kind:'error-row',reason:en?'This post was skipped':'このポストをスキップしました'},{...sample,score:.1,display:en?'Visible':'表示',kind:'other-row'},{...sample,score:.2,display:en?'Visible':'表示',kind:'other-row'}];
 for(const row of rows){row.keyword=!!row.keyword;row.aiEnabled=!row.keyword;row.temporarilyReleased=false;row.details={processingError:row.kind==='error-row',lastProcessedAt:row.keyword||row.kind==='pending-row'?null:'2026-10-27T03:00:00.000Z',processingLog:row.keyword||row.kind==='pending-row'?[]:[en?'2026-10-27T03:00:00.000Z · Classification complete':'2026-10-27T03:00:00.000Z · 判定完了'],displayLog:[en?'2026-10-27T03:00:00.100Z · Display updated':'2026-10-27T03:00:00.100Z · 表示を変更'],sentText:row.keyword||row.kind==='pending-row'?null:row.text,inputOrigin:row.keyword||row.kind==='pending-row'?'none':'api'};}
-fillReport(document.getElementById('report')!,rows,{url:'https://x.com/home',time:Date.now()});
+const diagnostics:Diagnostics={};
+if(new URL(location.href).searchParams.has('long')){
+ const text=(en?'Long sample post. ':'長文サンプル。').repeat(200)+(en?'End-of-post marker':'末尾検索語');
+ diagnostics.long={processingError:false,lastProcessedAt:null,processingLog:[],displayLog:[],sentText:null,postText:text,inputOrigin:'none'};
+ rows.splice(0,rows.length,...[1,2].map(i=>({...sample,text:text.slice(0,1000),condition:String(i),provider:'',model:'',score:null,threshold:null,kind:'other-row' as const,source:t('aiNotApplicable'),display:t('m_17efc6654ed2'),reason:t('m_4603c00396af'),aiUsage:'off' as const,aiEnabled:false,details:undefined,detailsId:'long',elapsedMs:null})));
+}
+fillReport(document.getElementById('report')!,rows,{url:'https://x.com/home',time:Date.now(),diagnostics});

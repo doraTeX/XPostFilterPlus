@@ -2,7 +2,7 @@ import {PROVIDERS} from './ai.js';
 import {t,language} from './i18n';
 export type RowKind='keyword-excluded-row'|'excluded-row'|'pending-row'|'error-row'|'other-row';
 export type AIUsage='off'|'no-conditions'|'paused'|'filter-off'|'not-fetched';
-export type DecisionDetails={processingError:boolean;lastProcessedAt:string|null;processingLog:string[];displayLog:string[];sentText:string|null;inputOrigin?:'api'|'cache'|'shared'|'none'|'unknown'};
+export type DecisionDetails={processingError:boolean;lastProcessedAt:string|null;processingLog:string[];displayLog:string[];sentText:string|null;postText?:string;inputOrigin?:'api'|'cache'|'shared'|'none'|'unknown'};
 export type Diagnostics=Record<string,DecisionDetails>;
 export type DecisionRow={postId:string;author?:string;text:string;condition:string;provider:string;model:string;providerPlanned?:boolean;score:number|null;threshold:number|null;aiUsage?:AIUsage;source:string;display:string;reason:string;elapsedMs:number|null;kind?:RowKind;keyword?:boolean;aiEnabled?:boolean;temporarilyReleased?:boolean;detailsId?:string;details?:DecisionDetails};
 export function aiUsageLabel(row:DecisionRow){if(row.keyword)return t('aiUnusedKeyword');if(!row.provider){const labels:Record<AIUsage,string>={'off':'aiUnusedOff','no-conditions':'aiUnusedNoConditions','paused':'aiUnusedPaused','filter-off':'aiUnusedFilterOff','not-fetched':'aiUnusedPending'};return t(labels[row.aiUsage||'not-fetched']);}const label=[(PROVIDERS as Record<string,string>)[row.provider]||row.provider,row.model].filter(Boolean).join(' / ');return row.score===null?label+t(row.providerPlanned?'aiNotClassified':'aiResultPending'):label;}
@@ -39,6 +39,7 @@ export function fillReport(root:HTMLElement,rows:DecisionRow[],meta:{time?:numbe
   details.addEventListener('toggle',()=>{if(!details.open||details.dataset.loaded)return;details.dataset.loaded='true';
    const detail=detailOf(row,meta.diagnostics||{}),list=h('dl','',details);
    for(const [label,value]of [['detailProcessingError',yesNo(detail?.processingError)],['detailStatus',row.reason],['detailLastProcessed',detail?.lastProcessedAt||t('detailNoProcessingTime')],['detailSource',row.source],['detailKeyword',yesNo(row.keyword)],['detailReleased',yesNo(row.temporarilyReleased)],['detailAIEnabled',yesNo(row.aiEnabled)]]){h('dt',t(label),list);h('dd',value,list);}
+   if(detail?.postText){h('h3',t('m_18cafaff5560'),details);h('pre',detail.postText,details);}
    h('h3',t('detailProcessingHeading'),details);h('pre',detail?.processingLog.join('\n')||t('detailNoProcessingLog'),details);
    h('h3',t('detailDisplayHeading'),details);h('pre',detail?.displayLog.join('\n')||t('detailNoDisplayLog'),details);
    h('h3',t('detailSentText'),details);
@@ -46,7 +47,11 @@ export function fillReport(root:HTMLElement,rows:DecisionRow[],meta:{time?:numbe
    h('pre',detail?.sentText??t('detailNoSentText'),details);
   });
  }
- const texts=rows.map(row=>row.text.toLowerCase());
+ // 本文はポストごとに保持し、小文字化も条件行の数だけ繰り返さない。
+ const normalized=new WeakMap<DecisionDetails,string>(),texts=rows.map(row=>{
+  const detail=detailOf(row,meta.diagnostics||{});if(!detail)return row.text.toLowerCase();
+  let text=normalized.get(detail);if(text===undefined){text=(detail.postText??detail.sentText??row.text).toLowerCase();normalized.set(detail,text);}return text;
+ });
  function update(){const selected=new Set(inputs.filter(e=>e.checked).map(e=>e.dataset.filter)),query=search.value.trim().toLowerCase(),matches=new Map<string,number>();let count=0;for(const [i,tr] of Array.from(body.rows).entries()){const match=texts[i].includes(query);if(match)matches.set(tr.className,(matches.get(tr.className)||0)+1);tr.hidden=!selected.has(tr.className)||!match;if(!tr.hidden)count++;}for(const [name,node]of countNodes)node.textContent=String(matches.get(name)||0);counter.textContent=t('reportFilterCount',[count,rows.length]);empty.hidden=count!==0;}
  search.addEventListener('input',update);inputs.forEach(e=>e.onchange=update);all.onclick=()=>{inputs.forEach(e=>e.checked=true);update();};none.onclick=()=>{inputs.forEach(e=>e.checked=false);update();};update();
  if(!rows.length)h('p',t('m_4b484f018ece'));

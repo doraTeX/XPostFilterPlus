@@ -188,7 +188,7 @@ it('通信中に全件一時表示へ切り替えたら通常表示に分類し�
 });
 it('AI判定の時刻・処理と表示のログ・実際の本文を詳細へ引き継ぎ、軽量取得には載せない',async()=>{
  const text='先頭'.repeat(600)+'\n送信本文の末尾';fixture(text);const {api}=mock([],true,async()=>({scores:[.95],provider:'jev',model:'jev-1.13.0',attempted:true}));engine=await start(api);await settle();
- const data=engine.snapshot(),row=data.rows[0],detail=data.diagnostics[row.detailsId!];expect(row.text).toBe(text);expect(detail.sentText).toBe(text);expect(detail.lastProcessedAt).toMatch(/^\d{4}-/);expect(row.providerPlanned).toBe(false);expect(detail.processingError).toBe(false);expect(detail.processingLog.join('\n')).toContain('判定完了');expect(detail.displayLog.join('\n')).toContain('非表示');expect(row.aiEnabled).toBe(true);
+ const data=engine.snapshot(),row=data.rows[0],detail=data.diagnostics[row.detailsId!];expect(row.text).toBe(text.slice(0,1000));expect(detail.postText).toBeUndefined();expect(detail.sentText).toBe(text);expect(detail.lastProcessedAt).toMatch(/^\d{4}-/);expect(row.providerPlanned).toBe(false);expect(detail.processingError).toBe(false);expect(detail.processingLog.join('\n')).toContain('判定完了');expect(detail.displayLog.join('\n')).toContain('非表示');expect(row.aiEnabled).toBe(true);
  expect(engine.snapshot(false).diagnostics).toEqual({});expect(engine.snapshot(false).rows).toEqual([]);
  const count=detail.displayLog.length;engine.scan();engine.scan();expect(engine.snapshot().diagnostics[row.detailsId!].displayLog).toHaveLength(count);
  engine.pause();const paused=engine.snapshot();expect(paused.diagnostics[paused.rows[0].detailsId!].displayLog.join('\n')).toContain('表示：');
@@ -243,8 +243,14 @@ it('チップから設定を開いた後や別の画面からフォーカスが�
 });
 
 
-it('判定詳細の本文を1000文字で切らず、長いポストの末尾も絞り込める',async()=>{
- const text='長文'.repeat(600)+'末尾検索語';fixture(text);const {api}=mock([],false);engine=await start(api);
- const snapshot=engine.snapshot();expect(snapshot.rows[0].text).toBe(text);
- const root=document.createElement('div');fillReport(root,snapshot.rows);const search=root.querySelector<HTMLInputElement>('#report-text-filter')!;search.value='末尾検索語';search.dispatchEvent(new Event('input'));expect(root.querySelector<HTMLTableRowElement>('tbody tr')!.hidden).toBe(false);
+it.each(['off','pending','api','cached','shared','keyword'])('%sの長文を条件ごとに複製せず、未送信と送信記録を区別して末尾まで検索する',async mode=>{
+ const text='先頭'.repeat(2500)+'末尾検索語';fixture(text);
+ const {api,state}=mock(mode==='keyword'?['先頭']:[],!['off','keyword'].includes(mode),()=>mode==='pending'?new Promise(()=>{}):Promise.resolve({scores:Array(10).fill(.1),provider:'jev',model:'jev-1.13.0',attempted:mode==='api',cached:mode==='cached',shared:mode==='shared'}));
+ state.settings.aiConditions=Array.from({length:10},(_,i)=>'条件'+i);engine=await start(api);await settle();
+ const data=engine.snapshot(),known=['api','cached','shared'].includes(mode),detail=data.diagnostics[data.rows[0].detailsId!];
+ expect(data.rows).toHaveLength(mode==='keyword'?1:10);expect(data.rows.every(row=>row.text===text.slice(0,1000))).toBe(true);expect(Object.keys(data.diagnostics)).toHaveLength(1);
+ expect(detail.sentText).toBe(known?text:null);expect(detail.postText).toBe(known?undefined:text);expect(JSON.stringify(data).split('末尾検索語')).toHaveLength(2);
+ expect(engine.snapshot(false).diagnostics).toEqual({});
+ const root=document.createElement('div');fillReport(root,data.rows,{diagnostics:data.diagnostics});const search=root.querySelector<HTMLInputElement>('#report-text-filter')!;search.value='末尾検索語';search.dispatchEvent(new Event('input'));
+ expect(Array.from(root.querySelectorAll<HTMLTableRowElement>('tbody tr')).filter(row=>!row.hidden)).toHaveLength(data.rows.length);
 });

@@ -80,3 +80,18 @@ it.each(['ja','en'])('%sでポスト本文のみを検索し、判定種別と�
   query('');expect(hits('excluded-row')).toBe('1');expect(hits('other-row')).toBe('2');expect(count()).toBe(3);expect(root.querySelector<HTMLElement>('#filter-empty')!.hidden).toBe(true);
  }finally{document.documentElement.lang='ja';}
 });
+
+
+it.each(['ja','en'])('%sで共有の検索用全文を表示しても送信した本文とは混同しない',lang=>{
+ document.documentElement.lang=lang;
+ try{
+  const text='長文'.repeat(700)+'末尾 <script>bad()</script>',short=text.slice(0,1000),root=document.createElement('div');
+  const details={processingError:false,lastProcessedAt:null,processingLog:[],displayLog:[],sentText:null,postText:text,inputOrigin:'none' as const};
+  const rows=[{...row,text:short,detailsId:'p',condition:'条件1'},{...row,text:short,detailsId:'p',condition:'条件2'}];fillReport(root,rows,{diagnostics:{p:details}});
+  expect(root.querySelector('tbody td:nth-child(3)')!.textContent).toBe(short);expect(root.querySelector('pre')).toBeNull();
+  const search=root.querySelector<HTMLInputElement>('#report-text-filter')!;search.value='末尾';search.dispatchEvent(new Event('input'));expect(root.querySelector('#filter-count')!.textContent).toContain('2 / 2');
+  const expanded=root.querySelector<HTMLDetailsElement>('details')!;expanded.open=true;expanded.dispatchEvent(new Event('toggle'));
+  expect(expanded.querySelector('pre')!.textContent).toBe(text);expect(expanded.textContent).toContain(lang==='ja'?'送信テキストの記録なし':'No submitted text recorded');expect(root.querySelector('script')).toBeNull();
+  expect(decisionTSV(rows,{p:details})).not.toContain('末尾');expect(Object.values(reportRecords(rows,{p:details})[0])).not.toContain(text);
+ }finally{document.documentElement.lang='ja';}
+});
