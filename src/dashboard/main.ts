@@ -4,6 +4,7 @@ import {SETTINGS,LOCAL} from '../shared/settings';
 import {call} from '../shared/client';
 import {connectionOrigin} from '../shared/ai.js';
 import {bindCloseEvents} from './close-events';
+import {renderSettingsError} from './error';
 document.documentElement.lang=language();document.title=t('actionTitle');
 const embedded=window.parent!==window,editorToken=new URLSearchParams(location.hash.slice(1)).get('token');
 document.documentElement.classList.toggle('embedded',embedded);
@@ -14,10 +15,16 @@ const invoke=(type:string,data:Record<string,unknown>={})=>{
  return call(type,payload);
 };
 let dashboard:Awaited<ReturnType<typeof mountDashboard>>|undefined;
-const unbindClose=bindCloseEvents(()=>dashboard?.close(),embedded);
+async function requestClose(){
+ if(dashboard)return dashboard.close();
+ // 認証やGET自体が失敗した場合も、未作成の編集画面からは退出できる。
+ if(embedded)parent.postMessage({type:'XPF_CLOSE_EMPTY'},'*');
+ else await invoke('CLOSE');
+}
+const unbindClose=bindCloseEvents(requestClose,embedded);
 window.addEventListener('pagehide',()=>{unbindClose();dashboard?.dispose();},{once:true});
 void mountDashboard(document.getElementById('app')!,{
  call:invoke,
  ...(embedded?{confirm:async(value:string)=>!!await invoke('CONFIRM',{value}),copy:async(value:string)=>{await invoke('COPY',{value});}}:{}),
  onChange:(fn:()=>void)=>{const listener=(changes:Record<string,chrome.storage.StorageChange>,area:string)=>{if(area==='local'&&(SETTINGS in changes||LOCAL in changes||'xpf_sync_state' in changes))fn();};chrome.storage.onChanged.addListener(listener);return ()=>chrome.storage.onChanged.removeListener(listener);}
-}).then(value=>{dashboard=value;dashboard.focus();}).catch(e=>{document.getElementById('app')!.textContent=e.message;});
+}).then(value=>{dashboard=value;dashboard.focus();}).catch(e=>{renderSettingsError(document.getElementById('app')!,e,requestClose);});

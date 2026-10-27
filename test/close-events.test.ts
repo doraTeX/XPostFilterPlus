@@ -24,3 +24,9 @@ it('親フレーム・許可した接続元・閉じるメッセージの3条件
   window.dispatchEvent(new MessageEvent('message',{source:window,origin:'https://x.com',data:{type:'XPF_REQUEST_CLOSE'}}));expect(close).toHaveBeenCalledTimes(1);
  }finally{dispose();}
 });
+it('入力中も親へ応答し、保存待ちの監視タイマーによる破棄を防ぐ',()=>{
+ const field=document.createElement('textarea');document.body.append(field);field.focus();const post=vi.spyOn(parent,'postMessage').mockImplementation(()=>{}),close=vi.fn(async()=>{}),dispose=bindCloseEvents(close,true);
+ try{window.dispatchEvent(new MessageEvent('message',{source:window,origin:'https://x.com',data:{type:'XPF_REQUEST_CLOSE'}}));
+ expect(post).toHaveBeenCalledWith({type:'XPF_CLOSE_ACK'},'https://x.com');expect(close).not.toHaveBeenCalled();
+ }finally{dispose();field.remove();post.mockRestore();}
+});

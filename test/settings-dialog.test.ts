@@ -40,3 +40,29 @@ it('cancelを取り消せない連続Escでもフレームを破棄せず、保�
  expect(dialog.open).toBe(true);expect(host.isConnected).toBe(true);expect(root.querySelector('iframe')).toBe(frame);expect(frame.src).toBe(url);expect(post).toHaveBeenCalledTimes(2);
  editor.close('test-token');expect(host.isConnected).toBe(false);expect(document.activeElement).toBe(previous);
 });
+
+it('応答がない設定フレームはEscの要求後に閉じられる',async()=>{
+ vi.useFakeTimers();try{editor.open(url);const host=document.getElementById('xpf-settings-host')!,dialog=host.shadowRoot!.querySelector('dialog')!;
+ dialog.dispatchEvent(new Event('cancel',{cancelable:true}));expect(host.isConnected).toBe(true);await vi.advanceTimersByTimeAsync(1500);expect(host.isConnected).toBe(false);
+ }finally{vi.useRealTimers();}
+});
+it.each(['XPF_CLOSE_ACK','XPF_CLOSE_EMPTY'])('接続元とフレームを検証して%sを扱う',async type=>{
+ vi.useFakeTimers();try{editor.open(url);const host=document.getElementById('xpf-settings-host')!,root=host.shadowRoot!,dialog=root.querySelector('dialog')!,frame=root.querySelector('iframe')!;
+ Object.defineProperty(frame,'contentWindow',{value:window});dialog.dispatchEvent(new Event('cancel',{cancelable:true}));
+ window.dispatchEvent(new MessageEvent('message',{source:window,origin:'chrome-extension://test-extension',data:{type}}));
+ await vi.advanceTimersByTimeAsync(5000);expect(host.isConnected).toBe(type==='XPF_CLOSE_ACK');
+ }finally{vi.useRealTimers();}
+});
+it('別フレームやページの偽の応答では保護や閉じる操作を行わない',async()=>{
+ vi.useFakeTimers();try{editor.open(url);const host=document.getElementById('xpf-settings-host')!,root=host.shadowRoot!,dialog=root.querySelector('dialog')!,frame=root.querySelector('iframe')!;Object.defineProperty(frame,'contentWindow',{value:window});
+ dialog.dispatchEvent(new Event('cancel',{cancelable:true}));
+ window.dispatchEvent(new MessageEvent('message',{source:window,origin:'https://x.com',data:{type:'XPF_CLOSE_EMPTY'}}));expect(host.isConnected).toBe(true);
+ window.dispatchEvent(new MessageEvent('message',{source:null,origin:'chrome-extension://test-extension',data:{type:'XPF_CLOSE_ACK'}}));
+ await vi.advanceTimersByTimeAsync(1500);expect(host.isConnected).toBe(false);
+ }finally{vi.useRealTimers();}
+});
+it('古いフレームの閉じるタイマーで新しい設定画面を閉じない',async()=>{
+ vi.useFakeTimers();try{editor.open(url);const dialog=document.getElementById('xpf-settings-host')!.shadowRoot!.querySelector('dialog')!;dialog.dispatchEvent(new Event('cancel',{cancelable:true}));editor.open(url.replace('test-token','new-token'));
+ await vi.advanceTimersByTimeAsync(2000);expect(document.getElementById('xpf-settings-host')).not.toBeNull();
+ }finally{vi.useRealTimers();}
+});

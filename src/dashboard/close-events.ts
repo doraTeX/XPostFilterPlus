@@ -3,7 +3,7 @@ export function bindCloseEvents(close:()=>Promise<unknown>|undefined,embedded:bo
  const request=()=>{void close()?.catch(()=>{});};
  const editing=()=>document.activeElement?.closest('input,textarea,select,[contenteditable]:not([contenteditable="false"]),[role="textbox"]');
  const keydown=(event:KeyboardEvent)=>{if(event.key==='Escape'&&!event.isComposing&&!editing()){event.preventDefault();request();}};
- const message=(event:MessageEvent)=>{if(embedded&&event.source===parent&&parentOrigins.includes(event.origin)&&event.data?.type==='XPF_REQUEST_CLOSE'&&!editing())request();};
+ const message=(event:MessageEvent)=>{if(embedded&&event.source===parent&&parentOrigins.includes(event.origin)&&event.data?.type==='XPF_REQUEST_CLOSE'){parent.postMessage({type:'XPF_CLOSE_ACK'},event.origin);if(!editing())request();}};
  window.addEventListener('keydown',keydown);window.addEventListener('message',message);
  return ()=>{window.removeEventListener('keydown',keydown);window.removeEventListener('message',message);};
 }
