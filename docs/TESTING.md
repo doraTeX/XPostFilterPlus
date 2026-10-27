@@ -2,7 +2,7 @@
 
 ## Automated checks
 
-The X extension has 142 passing tests covering extraction, DOM reuse, routing, temporary overrides, tooltip controls, spinner state, token accounting, provider requests, caches, key verification, error scopes, settings persistence, sync conflicts, bilingual UI, safe report rendering, and report filters.
+The X extension has 164 passing tests covering extraction, DOM reuse, routing, temporary overrides, tooltip controls, spinner state, token accounting, provider requests, caches, key verification, error scopes, settings persistence, sync conflicts, bilingual UI, safe report rendering, and report filters.
 
 `npm run check:i18n` verifies the English and Japanese catalogs and placeholders. `npm run build:extension` checks TypeScript and creates the unpacked extension. Packaging verifies manifest identity and scans for unintended local paths or unrelated endpoints.
 
@@ -63,3 +63,15 @@ All 142 X tests and 127 Y!News tests pass. Added coverage includes fallback sett
 Chrome local previews used real dialogs and the production settings UI with simulated save failures. In both extensions, three consecutive Escape presses while editing retained the input; a failed Close operation also kept it visible. On the real X page, the refreshed extension displayed its chip and opened the embedded settings UI. Chrome then blocked further automation while extension UI was open. The user manually confirmed that the permission dialog opens and the copied TSV can be pasted. X lacked the Copied! feedback, so matching success feedback was added and is shown only after copying succeeds. Automated tests and local previews make no live AI requests; the manual checks do not establish provider accuracy.
 
 After updating the build, the user also confirmed that the Copied! feedback appears successfully on the real X page.
+
+
+## Settings initialization failure recovery (2026-10-27)
+
+All 156 X tests and 130 Y!News tests pass. X coverage includes a close button after a failed settings GET, exiting before the dashboard is created, validating the frame source and origin for close responses, dismissing an unresponsive frame, retaining an acknowledged editor during editing or saving, and cancelling stale close timers. A PAGE_READY storage failure no longer prevents filtering from starting; extension disconnection still prevents startup. Y!News allows dismissal after disconnection without retrying unsavable edits, including while an earlier save is waiting.
+
+Chrome local previews confirmed that the X settings load-error screen can be closed, repeated Escape and save failure retain entered text, and the Y!News dialog can be dismissed after a simulated disconnection. These checks used mock data without real AI calls or changes to the installed extension's settings.
+
+
+## Storage notification availability (2026-10-27)
+
+All 164 tests pass. The dashboard no longer assumes chrome.storage.onChanged is available. If accessing or subscribing to it fails, authenticated settings refreshes run every 1.5 seconds until the dashboard is disposed. The usual notification path still filters local settings changes and performs no additional polling. Coverage includes absent APIs, a throwing storage getter, subscription failure, and cleanup after extension invalidation. This regression is covered with mocked Chrome APIs; installed-extension verification requires reloading the extension and X page.
