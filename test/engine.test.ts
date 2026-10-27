@@ -188,7 +188,7 @@ it('通信中に全件一時表示へ切り替えたら通常表示に分類し�
 });
 it('AI判定の時刻・処理と表示のログ・実際の本文を詳細へ引き継ぎ、軽量取得には載せない',async()=>{
  const text='先頭'.repeat(600)+'\n送信本文の末尾';fixture(text);const {api}=mock([],true,async()=>({scores:[.95],provider:'jev',model:'jev-1.13.0',attempted:true}));engine=await start(api);await settle();
- const data=engine.snapshot(),row=data.rows[0],detail=data.diagnostics[row.detailsId!];expect(row.text.length).toBe(1000);expect(detail.sentText).toBe(text);expect(detail.lastProcessedAt).toMatch(/^\d{4}-/);expect(detail.processingError).toBe(false);expect(detail.processingLog.join('\n')).toContain('判定完了');expect(detail.displayLog.join('\n')).toContain('非表示');expect(row.aiEnabled).toBe(true);
+ const data=engine.snapshot(),row=data.rows[0],detail=data.diagnostics[row.detailsId!];expect(row.text.length).toBe(1000);expect(detail.sentText).toBe(text);expect(detail.lastProcessedAt).toMatch(/^\d{4}-/);expect(row.providerPlanned).toBe(false);expect(detail.processingError).toBe(false);expect(detail.processingLog.join('\n')).toContain('判定完了');expect(detail.displayLog.join('\n')).toContain('非表示');expect(row.aiEnabled).toBe(true);
  expect(engine.snapshot(false).diagnostics).toEqual({});expect(engine.snapshot(false).rows).toEqual([]);
  const count=detail.displayLog.length;engine.scan();engine.scan();expect(engine.snapshot().diagnostics[row.detailsId!].displayLog).toHaveLength(count);
  engine.pause();const paused=engine.snapshot();expect(paused.diagnostics[paused.rows[0].detailsId!].displayLog.join('\n')).toContain('表示：');
@@ -226,7 +226,7 @@ it('通常設定の旧aiDebugは使わず、タブ内の通知でのみ継続Con
 
 it.each([['jev','jev-1.13.0'],['openai','gpt-6-luna'],['clef','clef'],['clef','clef-flash']])('未取得でも%s / %sを表示し、実送信本文の記録を作らない',async(provider,model)=>{
  fixture('判定する本文');const {api,state}=mock([],true,()=>new Promise(()=>{}));state.provider=provider;state.model=model;engine=await start(api);
- const data=engine.snapshot(),row=data.rows[0];expect(row).toMatchObject({provider,model,score:null,kind:'pending-row',elapsedMs:null});expect(row.reason).toContain('判定処理中');expect(data.diagnostics[row.detailsId!].sentText).toBeNull();
+ const data=engine.snapshot(),row=data.rows[0];expect(row).toMatchObject({provider,model,providerPlanned:true,score:null,kind:'pending-row',elapsedMs:null});expect(row.reason).toContain('判定処理中');expect(data.diagnostics[row.detailsId!].sentText).toBeNull();
 });
 it('画面外・通信枠待ち・接続確認中の未送信をAI応答待ちと区別する',async()=>{
  const cell=fixture('先に判定する本文');document.body.insertAdjacentHTML('beforeend','<article role="article"><a href="/b/status/456"><time>今</time></a><div data-testid="tweetText">次に判定する本文</div></article>');const {api,state}=mock([],true,()=>new Promise(()=>{}));state.settings.aiConcurrency=1;engine=await start(api);

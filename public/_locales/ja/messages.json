@@ -1344,5 +1344,8 @@
   },
   "decisionNotSubmitted": {
     "message": "まだ問い合わせていません。次の判定処理を待っています。"
+  },
+  "aiNotClassified": {
+    "message": "（未判定）"
   }
 }

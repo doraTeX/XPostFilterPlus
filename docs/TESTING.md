@@ -2,7 +2,7 @@
 
 ## Automated checks
 
-The X extension has 233 passing tests covering extraction, DOM reuse, routing, temporary overrides, tooltip controls, spinner state, token accounting, provider requests, caches, key verification, error scopes, settings persistence, sync conflicts, bilingual UI, safe report rendering, and report filters.
+The X extension has 235 passing tests covering extraction, DOM reuse, routing, temporary overrides, tooltip controls, spinner state, token accounting, provider requests, caches, key verification, error scopes, settings persistence, sync conflicts, bilingual UI, safe report rendering, and report filters.
 
 `npm run check:i18n` verifies the English and Japanese catalogs and placeholders. `npm run build:extension` checks TypeScript and creates the unpacked extension. Packaging verifies manifest identity and scans for unintended local paths or unrelated endpoints.
 
@@ -114,3 +114,10 @@ A shared interaction controller now distinguishes pointer presence and explicit 
 ## Brief tag flash during settings close (2026-10-27)
 
 The X dialog now reports its complete visibility lifecycle, including cleanup paths, to the overlay. Tags and Pause remain suppressed while the dialog is open and until a new pointer movement or keyboard action after closing; stationary hover notifications and automatic focus restoration cannot reveal them. Five additional tests cover the close-event sequence, resumption, ongoing modal suppression, visibility callback ordering, and engine startup while settings are already open. All 233 tests, TypeScript, bilingual resources and packaging pass. A Chrome local preview recorded eight consecutive samples from synchronous close completion through requestAnimationFrame; all were display:none. This covers the local overlay/dialog pair, not a new test of the installed extension on live X.
+
+
+## Audit Y6 alignment — 2026-10-27
+
+Pending rows whose provider is only planned show “not yet classified”; rows with provider metadata and no score retain “no decision result”. Both labels are checked in English and Japanese in the table, TSV, and Console records. Existing saved reports without the new optional provenance flag retain their earlier label. Keyword-only and disabled-AI rows retain their unused labels. The suite passes 235 tests across 18 files; both catalogs contain 363 matching keys, and TypeScript, the extension build, and ZIP packaging pass. These are mocked checks, not live provider tests.
+
+Audit information items G1/G2 require no change: hover listeners do lightweight work, and pending-reason geometry reads are confined to detailed report generation, including explicitly enabled debug output. Routine status polling skips report rows.
