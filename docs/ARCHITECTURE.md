@@ -26,3 +26,6 @@ The dialog forwards Escape to the dashboard, which keeps the dialog open while a
 Chrome reference: [web-accessible resources](https://developer.chrome.com/docs/extensions/reference/manifest/web-accessible-resources).
 
 If no content script can open the dialog, the same originating tab ID is retained in a reusable fallback settings tab. A top-frame startup message revokes stale frame grants after a reload. Unexpected native dialog closure reopens the existing frame; only the authenticated close response after saving removes it.
+
+
+Content startup waits while X is at the root entry path `/` or has not rendered its `main` element. The wait only reads the page state: it does not navigate, mount the overlay, or hide posts. Once X selects its own route and mounts the main view, the existing engine starts. Empty timelines and searches still start normally because posts are not a readiness condition. Disconnection cancels the wait and removes its timer and listener.
