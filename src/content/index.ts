@@ -1,12 +1,13 @@
 import {start} from './engine.js';
 import {createSettingsDialog} from './settings-dialog';
 import {call} from '../shared/client';
+import {waitForXReady} from './startup';
 import {isConnected,onDisconnected,isDisconnectedError} from '../shared/connection';
 const editor=createSettingsDialog(path=>chrome.runtime.getURL(path));
 onDisconnected(()=>editor.dispose());
 async function launch(){
  try{await call('PAGE_READY');}catch(error){if(isDisconnectedError(error)||!isConnected())return;}
- if(!isConnected())return;
+ if(!await waitForXReady(isConnected,onDisconnected))return;
  return start({call,isConnected,onDisconnected,listen:(fn:(m:any)=>any)=>{
  const handler=(m:any,sender:chrome.runtime.MessageSender,respond:(data:any)=>void)=>{
   if(!isConnected()||sender.id!==chrome.runtime.id)return;
