@@ -1,10 +1,10 @@
 import {beforeEach,afterEach,it,expect,vi} from 'vitest';
-const mocks=vi.hoisted(()=>({call:vi.fn(),start:vi.fn(),isConnected:vi.fn(),onDisconnected:vi.fn(),dispose:vi.fn(),open:vi.fn(),close:vi.fn(),action:vi.fn(),addListener:vi.fn(),removeListener:vi.fn(),ready:vi.fn()}));
+const mocks=vi.hoisted(()=>({call:vi.fn(),start:vi.fn(),isConnected:vi.fn(),onDisconnected:vi.fn(),dispose:vi.fn(),open:vi.fn(),close:vi.fn(),action:vi.fn(),addListener:vi.fn(),removeListener:vi.fn(),ready:vi.fn(),visibility:vi.fn()}));
 vi.mock('../src/content/startup',()=>({waitForXReady:mocks.ready}));
 vi.mock('../src/content/engine.js',()=>({start:mocks.start}));
 vi.mock('../src/shared/client',()=>({call:mocks.call}));
 vi.mock('../src/shared/connection',()=>({isConnected:mocks.isConnected,onDisconnected:mocks.onDisconnected,isDisconnectedError:(e:any)=>e?.kind==='disconnected'}));
-vi.mock('../src/content/settings-dialog',()=>({createSettingsDialog:()=>({dispose:mocks.dispose,open:mocks.open,close:mocks.close,action:mocks.action})}));
+vi.mock('../src/content/settings-dialog',()=>({createSettingsDialog:(_url:any,visibility:any)=>{mocks.visibility.mockImplementation(visibility);return {dispose:mocks.dispose,open:mocks.open,close:mocks.close,action:mocks.action};}}));
 beforeEach(()=>{vi.resetModules();vi.clearAllMocks();mocks.isConnected.mockReturnValue(true);mocks.ready.mockResolvedValue(true);mocks.call.mockResolvedValue(null);vi.stubGlobal('chrome',{runtime:{id:'test',getURL:(p:string)=>'chrome-extension://test/'+p,onMessage:{addListener:mocks.addListener,removeListener:mocks.removeListener}}});});
 afterEach(()=>vi.unstubAllGlobals());
 it('PAGE_READYのストレージエラーがあってもフィルターを起動する',async()=>{
@@ -51,4 +51,9 @@ it('古い許可の失効が完了する前には設定の受信を始めない'
 it('待機中も拡張以外の送信元から設定画面を開かせない',async()=>{
  mocks.ready.mockReturnValue(new Promise(()=>{}));await import('../src/content/index');const handler=mocks.addListener.mock.calls[0][0],respond=vi.fn();
  handler({type:'OPEN_SETTINGS',url:'untrusted'},{id:'other-extension'},respond);expect(mocks.open).not.toHaveBeenCalled();expect(respond).not.toHaveBeenCalled();
+});
+
+it('設定表示中にフィルターが起動しても開閉状態を引き継ぎ、閉じた後の状態も渡す',async()=>{
+ let ready!:(value:boolean)=>void;mocks.ready.mockImplementation(()=>new Promise(resolve=>{ready=resolve;}));await import('../src/content/index');mocks.visibility(true);ready(true);await Promise.resolve();
+ const filter=vi.fn();mocks.start.mock.calls[0][0].listen(filter);expect(filter).toHaveBeenCalledWith({type:'SETTINGS_VISIBILITY',visible:true});mocks.visibility(false);expect(filter).toHaveBeenLastCalledWith({type:'SETTINGS_VISIBILITY',visible:false});
 });

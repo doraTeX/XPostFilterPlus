@@ -4,8 +4,8 @@ import {call} from '../shared/client';
 import {t} from '../shared/i18n';
 import {waitForXReady} from './startup';
 import {isConnected,onDisconnected,isDisconnectedError} from '../shared/connection';
-const editor=createSettingsDialog(path=>chrome.runtime.getURL(path));
-let filterHandler:((m:any)=>any)|undefined,listening=false;
+let filterHandler:((m:any)=>any)|undefined,listening=false,settingsOpen=false;
+const editor=createSettingsDialog(path=>chrome.runtime.getURL(path),visible=>{settingsOpen=visible;filterHandler?.({type:'SETTINGS_VISIBILITY',visible});});
 function waitingSnapshot(){return {url:location.href,title:document.title,initializing:true,paused:false,hiddenWords:[],summary:{},stats:{},rows:[],message:t('xPageWaiting')};}
 function handleMessage(m:any,sender:chrome.runtime.MessageSender,respond:(data:any)=>void){
  if(!isConnected()||sender.id!==chrome.runtime.id)return;
@@ -28,7 +28,7 @@ async function launch(){
  catch(error){if(!isDisconnectedError(error))throw error;isConnected();return;}
  if(!await waitForXReady(isConnected,onDisconnected)){stopMessages();return;}
  return start({call,isConnected,onDisconnected,listen:(fn:(m:any)=>any)=>{
-  filterHandler=fn;return ()=>{if(filterHandler===fn)filterHandler=undefined;};
+  filterHandler=fn;fn({type:'SETTINGS_VISIBILITY',visible:settingsOpen});return ()=>{if(filterHandler===fn)filterHandler=undefined;};
  }});
 }
 void launch().catch(error=>{if(!isDisconnectedError(error))console.error('XPostFilterPlus:',error.message);});

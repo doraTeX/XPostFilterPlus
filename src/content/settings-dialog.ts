@@ -1,7 +1,7 @@
 import {t} from '../shared/i18n';
 type Panel={host:HTMLElement;dialog:HTMLDialogElement;frame:HTMLIFrameElement;token:string;origin:string;previous:Element|null};
 // 枠と開閉だけをページ側へ置き、APIキーを含むUIは別オリジンの拡張フレームに保つ。
-export function createSettingsDialog(getURL:(path:string)=>string){
+export function createSettingsDialog(getURL:(path:string)=>string,visibility:(open:boolean)=>void=()=>{}){
  let panel:Panel|null=null,closeTimer:ReturnType<typeof setTimeout>|undefined;
  function clearCloseTimer(){clearTimeout(closeTimer);closeTimer=undefined;}
  function message(event:MessageEvent){
@@ -9,7 +9,7 @@ export function createSettingsDialog(getURL:(path:string)=>string){
   if(event.data?.type==='XPF_CLOSE_ACK')clearCloseTimer();
   if(event.data?.type==='XPF_CLOSE_EMPTY')dispose();
  }
- function dispose(){const current=panel;if(!current)return;panel=null;clearCloseTimer();window.removeEventListener('message',message);if(current.dialog.open)current.dialog.close();current.host.remove();if(current.previous instanceof HTMLElement&&current.previous.isConnected)current.previous.focus({preventScroll:true});}
+ function dispose(){const current=panel;if(!current)return;panel=null;clearCloseTimer();window.removeEventListener('message',message);if(current.dialog.open)current.dialog.close();current.host.remove();if(current.previous instanceof HTMLElement&&current.previous.isConnected)current.previous.focus({preventScroll:true});visibility(false);}
  function requestClose(){
   const current=panel;if(!current)return;
   // 応答のない壊れたフレームだけを閉じる。編集中・保存待ちはACKで保持する。
@@ -24,12 +24,12 @@ export function createSettingsDialog(getURL:(path:string)=>string){
   const root=host.attachShadow({mode:'closed'}),style=document.createElement('style');
   style.textContent=`:host{all:initial;color-scheme:light}dialog{width:min(720px,calc(100vw - 32px));max-width:720px;height:calc(100dvh - 40px);max-height:calc(100dvh - 40px);margin:auto;padding:0;border:1px solid #b5c4d4;border-radius:16px;background:#fff;color:#172b42;box-shadow:0 20px 80px #102a4350;overflow:hidden;box-sizing:border-box}dialog::backdrop{background:#0003}iframe{display:block;width:100%;height:100%;border:0;background:white}`;
   const dialog=document.createElement('dialog'),frame=document.createElement('iframe');dialog.setAttribute('aria-label',t('actionTitle'));frame.title=t('actionTitle');frame.allow='clipboard-write';frame.referrerPolicy='no-referrer';
-  panel={host,dialog,frame,token,origin:url.protocol+'//'+url.host,previous};
+  visibility(true);panel={host,dialog,frame,token,origin:url.protocol+'//'+url.host,previous};
   window.addEventListener('message',message);
   dialog.addEventListener('cancel',event=>{event.preventDefault();requestClose();});
   // cancelを取り消せない連続Escでも、設定フレームは保存完了まで保持する。
   dialog.addEventListener('close',()=>{if(panel?.dialog===dialog){dialog.showModal();frame.focus();requestClose();}});
-  dialog.append(frame);root.append(style,dialog);document.documentElement.append(host);frame.src=url.href;dialog.showModal();frame.focus();return {opened:true};
+  try{dialog.append(frame);root.append(style,dialog);document.documentElement.append(host);frame.src=url.href;dialog.showModal();frame.focus();return {opened:true};}catch(error){dispose();throw error;}
  }
  function close(token:unknown){if(panel?.token!==token)return {closed:false};dispose();return {closed:true};}
  async function action(type:'CONFIRM_SETTINGS'|'COPY_SETTINGS',token:unknown,value:unknown){

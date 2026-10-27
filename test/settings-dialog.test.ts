@@ -66,3 +66,10 @@ it('古いフレームの閉じるタイマーで新しい設定画面を閉じ�
  await vi.advanceTimersByTimeAsync(2000);expect(document.getElementById('xpf-settings-host')).not.toBeNull();
  }finally{vi.useRealTimers();}
 });
+
+it('開く前に表示を抑え、閉じる通知は元の要素へフォーカスを戻した後に出す',()=>{
+ const previous=document.createElement('button');document.body.append(previous);previous.focus();const state:any[]=[];
+ editor=createSettingsDialog(path=>'chrome-extension://test-extension/'+path,open=>state.push({open,host:!!document.getElementById('xpf-settings-host'),focus:document.activeElement}));
+ editor.open(url);expect(state).toEqual([{open:true,host:false,focus:previous}]);expect(editor.close('wrong')).toEqual({closed:false});expect(state).toHaveLength(1);
+ editor.close('test-token');expect(state.at(-1)).toEqual({open:false,host:false,focus:previous});expect(state).toHaveLength(2);
+});

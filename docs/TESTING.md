@@ -2,7 +2,7 @@
 
 ## Automated checks
 
-The X extension has 217 passing tests covering extraction, DOM reuse, routing, temporary overrides, tooltip controls, spinner state, token accounting, provider requests, caches, key verification, error scopes, settings persistence, sync conflicts, bilingual UI, safe report rendering, and report filters.
+The X extension has 233 passing tests covering extraction, DOM reuse, routing, temporary overrides, tooltip controls, spinner state, token accounting, provider requests, caches, key verification, error scopes, settings persistence, sync conflicts, bilingual UI, safe report rendering, and report filters.
 
 `npm run check:i18n` verifies the English and Japanese catalogs and placeholders. `npm run build:extension` checks TypeScript and creates the unpacked extension. Packaging verifies manifest identity and scans for unintended local paths or unrelated endpoints.
 
@@ -106,3 +106,11 @@ The standalone page now keeps a localized landing page behind the settings dialo
 ## Pending provider labels (2026-10-27)
 
 Pending rows show the selected provider and model with no-decision-result status, while keyword-only and bypassed rows retain their unused labels. Tests cover Jev, OpenAI Decisions, both Clef models, viewport deferral, request-slot waits, connection checks, unset readiness, and Japanese/English table, TSV, and Console output. Pending labels do not create submitted-text or elapsed-time records. All 217 tests pass; both resource catalogs contain 362 matching keys. Network and Chrome APIs are mocked.
+
+## Hover tags after closing settings (2026-10-27)
+
+A shared interaction controller now distinguishes pointer presence and explicit keyboard navigation from focus restored after a dialog. Tests cover mouse exit with a focused tag, dialog focus restoration, Tab navigation, Escape, pointer movement outside after a missing exit event, window blur, and listener cleanup, in both light and Shadow DOM. The same controller and ten shared tests are used by Y!News Filter Plus. Engine regressions cover opening settings from the chip and returning focus without reopening the menu. All 228 tests pass; TypeScript, 362 bilingual keys, and packaging succeed. In a Chrome local preview using the actual overlay and dialog, Tab showed the tags, Enter opened settings, and closing settings restored chip focus without leaving the tags or Pause button visible. No live X or AI requests were made.
+
+## Brief tag flash during settings close (2026-10-27)
+
+The X dialog now reports its complete visibility lifecycle, including cleanup paths, to the overlay. Tags and Pause remain suppressed while the dialog is open and until a new pointer movement or keyboard action after closing; stationary hover notifications and automatic focus restoration cannot reveal them. Five additional tests cover the close-event sequence, resumption, ongoing modal suppression, visibility callback ordering, and engine startup while settings are already open. All 233 tests, TypeScript, bilingual resources and packaging pass. A Chrome local preview recorded eight consecutive samples from synchronous close completion through requestAnimationFrame; all were display:none. This covers the local overlay/dialog pair, not a new test of the installed extension on live X.

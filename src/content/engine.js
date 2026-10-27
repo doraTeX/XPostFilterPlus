@@ -164,7 +164,7 @@ export async function start(api){
  observer.observe(document.body,{childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:['href','data-testid','aria-selected']});
  const onScroll=()=>schedule(),onFocus=()=>void refresh();window.addEventListener('scroll',onScroll,{passive:true});window.addEventListener('focus',onFocus);
  const timer=setInterval(()=>{void refresh();},5000);
- stopListening=api.listen?.(m=>m?.type==='SNAPSHOT'?snapshot(m.details!==false):m?.type==='PAUSE'?pause():m?.type==='DEBUG_CHANGED'?setDebug(m.enabled):void refresh())||(()=>{});
+ stopListening=api.listen?.(m=>m?.type==='SNAPSHOT'?snapshot(m.details!==false):m?.type==='PAUSE'?pause():m?.type==='DEBUG_CHANGED'?setDebug(m.enabled):m?.type==='SETTINGS_VISIBILITY'?overlay.setSettingsOpen(m.visible):void refresh())||(()=>{});
  stopDisconnectListening=api.onDisconnected?.(showConnectionError)||(()=>{});
  scan();
  return {scan,refresh,snapshot,pause,root,dispose(){disposed=true;epoch++;observer.disconnect();clearTimeout(scanTimer);clearInterval(timer);window.removeEventListener('scroll',onScroll);window.removeEventListener('focus',onFocus);stopListening();stopDisconnectListening();for(const r of records.values())r.container?.removeAttribute(HIDE);processingTraces.clear();displayTraces.clear();overlay.dispose();style.remove();}};

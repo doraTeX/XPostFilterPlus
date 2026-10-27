@@ -39,3 +39,7 @@ Report rows reference per-post diagnostics so multiple conditions do not duplica
 Console streaming uses a per-tab flag in background session storage, outside validated settings. GET restores it before the first scan; DEBUG_SET updates only the originating tab. Tab removal deletes it. It survives content-script reloads and service-worker restarts within the browser session, but is never synced or exported. Legacy aiDebug settings are ignored on read and removed from new sync payloads.
 
 The standalone settings page uses a local dialog over a retained landing page. CLOSE is handled locally after the dashboard finishes saving; it does not close the settings tab. Native cancel and unexpected close events preserve the same editor and its input. Continuous Console output controls appear only in the embedded X-page settings UI.
+
+Hover tags and the pause shortcut use the same interaction controller as the Y extension. Pointer exit, outside pointer movement, window blur, and focus moving outside dismiss them. Only pointer entry or explicit keyboard navigation opens them; restoring focus after settings does not. Overlay disposal removes its document and window listeners.
+
+The X iframe dialog explicitly reports visibility through close cleanup and focus restoration. The overlay suppresses tags throughout that lifecycle, and after closing ignores stationary hover notifications until a new pointer movement or keyboard action. The visibility state is retained even when the filtering engine starts while settings are already open.

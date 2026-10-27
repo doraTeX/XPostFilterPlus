@@ -234,3 +234,10 @@ it('画面外・通信枠待ち・接続確認中の未送信をAI応答待ち�
  const next=document.querySelectorAll('article')[1];vi.spyOn(next,'getBoundingClientRect').mockReturnValue({top:innerHeight+1000,bottom:innerHeight+1200} as DOMRect);rows=engine.snapshot().rows;expect(rows[1].reason).toContain('画面付近');expect(rows[1].provider).toBe('jev');expect(api.call.mock.calls.filter(([type])=>type==='DECIDE')).toHaveLength(1);
  state.ai.verifying=true;await engine.refresh();expect(engine.snapshot().rows[1].reason).toContain('接続確認中');expect(cell.isConnected).toBe(true);
 });
+
+it('チップから設定を開いた後や別の画面からフォーカスが戻った後にタグを残さない',async()=>{
+ fixture();const {api}=mock();engine=await start(api);const wrap=engine.root.querySelector('#wrap')!,badge=engine.root.querySelector<HTMLButtonElement>('#badge')!,tip=engine.root.querySelector<HTMLElement>('#tip')!,pause=wrap.querySelector<HTMLElement>('[data-pause-control]')!;
+ wrap.dispatchEvent(new Event('mouseenter'));badge.focus();expect(tip.style.display).toBe('block');badge.click();expect(tip.style.display).toBe('none');expect(pause.hidden).toBe(true);
+ const field=document.createElement('input');document.body.append(field);field.focus();badge.focus();await Promise.resolve();engine.scan();expect(tip.style.display).toBe('none');expect(pause.hidden).toBe(true);
+ wrap.dispatchEvent(new Event('mouseenter'));expect(tip.style.display).toBe('block');document.body.dispatchEvent(new MouseEvent('pointermove',{bubbles:true,composed:true}));expect(tip.style.display).toBe('none');expect(pause.hidden).toBe(true);
+});
