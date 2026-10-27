@@ -1,6 +1,7 @@
 import {afterEach,it,expect,vi} from 'vitest';
 import {start} from '../src/content/engine.js';
 import {defaults} from '../src/shared/settings';
+import {fillReport,decisionTSV} from '../src/shared/report';
 let engine:Awaited<ReturnType<typeof start>>|undefined;
 afterEach(()=>{engine?.dispose();engine=undefined;document.body.replaceChildren();vi.restoreAllMocks();});
 function fixture(body='セール実施中',id='123'){
@@ -157,4 +158,31 @@ it('チップの一時停止でキーワード・AI除外をまとめて解除�
  button.click();expect(cell.hasAttribute('data-xpf-hidden')).toBe(true);expect(document.querySelectorAll('[data-xpf-hidden]')).toHaveLength(2);expect(button.getAttribute('aria-pressed')).toBe('false');
  engine.pause();expect(button.getAttribute('aria-pressed')).toBe('true');engine.pause();expect(button.getAttribute('aria-pressed')).toBe('false');expect(state.settings).toEqual(saved);
  wrap.dispatchEvent(new Event('mouseleave'));expect(host.hidden).toBe(true);
+});
+
+it('AIがONでも条件が空なら通常表示に分類し、表・TSV・集計に未取得や未判定を残さない',async()=>{
+ fixture('セール');document.body.insertAdjacentHTML('beforeend',Array.from({length:11},(_,i)=>`<article role="article"><a href="/sample/status/${i+1000}"><time>今</time></a><div data-testid="tweetText">通常の本文${i}</div></article>`).join(''));
+ const {api,state}=mock(['セール'],true,()=>new Promise(()=>{}));state.settings.aiConditions=[];
+ engine=await start(api);await settle();const data=engine.snapshot();
+ expect(data.summary).toMatchObject({target:12,keyword:1,hidden:1,pending:0});expect(data.rows).toHaveLength(12);
+ for(const row of data.rows.filter(r=>!r.keyword))expect(row).toMatchObject({kind:'other-row',aiUsage:'no-conditions',provider:'',score:null,threshold:null,source:'対象外',reason:'AIの条件を入力してください。'});
+ const root=document.createElement('div');fillReport(root,data.rows);
+ expect(root.querySelectorAll('tbody .keyword-excluded-row')).toHaveLength(1);expect(root.querySelectorAll('tbody .other-row')).toHaveLength(11);expect(root.querySelectorAll('tbody .pending-row')).toHaveLength(0);
+ expect(root.querySelector('tbody')!.textContent).not.toMatch(/未取得|未判定/);expect(decisionTSV(data.rows)).not.toMatch(/未取得|未判定/);
+ expect(api.call.mock.calls.some(([type])=>type==='DECIDE')).toBe(false);
+ state.settings.aiConditions=['宣伝'];await engine.refresh();await settle();
+ expect(engine.snapshot().summary.pending).toBe(11);expect(engine.snapshot().rows.filter(r=>r.kind==='pending-row')).toHaveLength(11);
+});
+it.each(['pause','disabled'])('%sでAIを使わない通常ポストは未取得に数えず、再開すると判定する',async mode=>{
+ document.body.replaceChildren();const {api,state}=mock([],true,()=>new Promise(()=>{}));if(mode==='disabled')state.settings.enabled=false;
+ engine=await start(api);if(mode==='pause')engine.pause();fixture('通常の本文');engine.scan();await settle();
+ const row=engine.snapshot().rows[0];expect(row.kind).toBe('other-row');expect(row.aiUsage).toBe(mode==='pause'?'paused':'filter-off');expect(row.source).toBe('対象外');expect(row.reason).not.toContain('未判定');expect(engine.snapshot().summary.pending).toBe(0);expect(api.call.mock.calls.some(([type])=>type==='DECIDE')).toBe(false);
+ if(mode==='pause')engine.pause();else{state.settings.enabled=true;await engine.refresh();}
+ await settle();expect(engine.snapshot().rows[0].kind).toBe('pending-row');expect(engine.snapshot().summary.pending).toBe(1);
+});
+it('通信中に全件一時表示へ切り替えたら通常表示に分類し、再開後は取得した結果を使う',async()=>{
+ fixture('AIで判定する本文');let resolve!:(reply:any)=>void;const {api}=mock([],true,()=>new Promise(r=>resolve=r));engine=await start(api);await settle();
+ expect(engine.snapshot().rows[0].kind).toBe('pending-row');engine.pause();expect(engine.snapshot().summary.pending).toBe(0);expect(engine.snapshot().rows[0].kind).toBe('other-row');
+ resolve({scores:[.95],provider:'jev',model:'jev-1.13.0'});await settle();const row=engine.snapshot().rows[0];expect(row).toMatchObject({kind:'other-row',aiUsage:'paused',provider:'jev',score:.95,display:'表示'});
+ engine.pause();expect(engine.snapshot().rows[0].kind).toBe('excluded-row');expect(api.call.mock.calls.filter(([type])=>type==='DECIDE')).toHaveLength(1);
 });

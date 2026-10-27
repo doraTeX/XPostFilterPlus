@@ -1123,13 +1123,13 @@
     "message": "Posts hidden as a result of AI classification."
   },
   "guidePending": {
-    "message": "Posts awaiting a result while AI classification is enabled, including queued requests, requests in progress, request limits, missing API keys, and provider-wide pauses or retry delays."
+    "message": "Posts awaiting a result while AI classification is on and conditions are configured, including queued requests, requests in progress, request limits, missing API keys, and provider-wide pauses or retry delays."
   },
   "guideError": {
     "message": "Posts with a recorded classification or storage error. See Decision status for the cause."
   },
   "guideVisible": {
-    "message": "Posts shown normally without being excluded, including posts shown while AI classification is off."
+    "message": "Posts shown normally without being excluded, including posts shown while AI classification is off, no conditions are configured, filtering is off, or all posts are temporarily shown."
   },
   "aiUnusedKeyword": {
     "message": "Not used (keyword matching)"
@@ -1163,5 +1163,17 @@
   },
   "resumeAll": {
     "message": "Resume filtering"
+  },
+  "aiUnusedNoConditions": {
+    "message": "Not used (no conditions)"
+  },
+  "aiUnusedPaused": {
+    "message": "Not used (temporarily paused)"
+  },
+  "aiUnusedFilterOff": {
+    "message": "Not used (filtering off)"
+  },
+  "aiNotApplicable": {
+    "message": "Not applicable"
   }
 }

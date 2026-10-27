@@ -32,3 +32,11 @@ it('TSVの本文の改行とタブで列や行が増えない',()=>{const lines=
 it('英語のTSV見出しは表示時の言語に合わせる',()=>{document.documentElement.lang='en';try{expect(decisionTSV([])).toContain('Post text\tCondition\tAI provider');expect(decisionTSV([])).not.toContain('ポスト');}finally{document.documentElement.lang='ja';}});
 it('キーワード一致ではAIの代わりに不使用（通常キーワード）を表示する',()=>{const keyword={...row,provider:'',model:'',keyword:true,score:null,kind:'keyword-excluded-row' as const};expect(decisionTSV([keyword])).toContain('不使用（通常キーワード）');expect(decisionTSV([keyword])).not.toContain('clef');});
 it('判定色の区分で絞り込み、全選択・全解除で行数を更新する',()=>{const root=document.createElement('div');document.body.append(root);const rows:DecisionRow[]=[{...row,kind:'keyword-excluded-row',keyword:true},{...row,kind:'excluded-row'},{...row,kind:'pending-row',provider:'',model:'',score:null},{...row,kind:'error-row',score:null},{...row,kind:'other-row',score:.1}];fillReport(root,rows);expect(root.querySelector('#filter-count')!.textContent).toBe('5 / 5 行を表示');const input=root.querySelector('[data-filter="excluded-row"]') as HTMLInputElement;input.click();expect((root.querySelector('tr.excluded-row') as HTMLElement).hidden).toBe(true);expect(root.querySelector('#filter-count')!.textContent).toBe('4 / 5 行を表示');Array.from(root.querySelectorAll('button')).find(b=>b.textContent==='すべて選択解除')!.click();expect(root.querySelector('#filter-count')!.textContent).toBe('0 / 5 行を表示');Array.from(root.querySelectorAll('button')).find(b=>b.textContent==='すべて選択')!.click();expect(root.querySelector('#filter-count')!.textContent).toBe('5 / 5 行を表示');});
+
+it.each(['no-conditions','paused','filter-off'] as const)('%sの行は通常表示に分類し、不使用の理由を日英で表示する',aiUsage=>{
+ for(const lang of ['ja','en']){document.documentElement.lang=lang;try{
+  const root=document.createElement('div'),unused:DecisionRow={...row,provider:'',model:'',score:null,threshold:null,aiUsage,kind:'pending-row'};fillReport(root,[unused]);
+  expect(root.querySelectorAll('tbody .other-row')).toHaveLength(1);expect(root.querySelectorAll('tbody .pending-row')).toHaveLength(0);
+  const label=reportRecords([unused])[0][lang==='ja'?'利用AI':'AI provider'];expect(label).toContain(lang==='ja'?'不使用':'Not used');expect(label).not.toContain(lang==='ja'?'未取得':'not fetched');
+ }finally{document.documentElement.lang='ja';}}
+});

@@ -1123,13 +1123,13 @@
     "message": "AI判定の結果、除外対象となったポスト"
   },
   "guidePending": {
-    "message": "AI判定を利用する設定で、結果をまだ取得していないポスト。未送信・順番待ち・通信中のほか、問い合わせ上限到達、APIキー未登録、先行する通信のエラーによる停止・再試行待ちを含みます"
+    "message": "AI判定がONで条件が設定され、結果をまだ取得していないポスト。未送信・順番待ち・通信中のほか、問い合わせ上限到達、APIキー未登録、先行する通信のエラーによる停止・再試行待ちを含みます"
   },
   "guideError": {
     "message": "このポストのAI判定処理、または保存・読み込み処理でエラーが記録されたポスト。原因は「判定状況」で確認できます"
   },
   "guideVisible": {
-    "message": "除外の対象とならず通常表示されたポスト。AI判定がOFFのときに表示されるポストも含みます"
+    "message": "除外の対象とならず通常表示されたポスト。AI判定OFF、条件未設定、フィルターOFF、全件一時表示のポストも含みます"
   },
   "aiUnusedKeyword": {
     "message": "不使用（通常キーワード）"
@@ -1163,5 +1163,17 @@
   },
   "resumeAll": {
     "message": "機能を再開"
+  },
+  "aiUnusedNoConditions": {
+    "message": "不使用（条件未設定）"
+  },
+  "aiUnusedPaused": {
+    "message": "不使用（一時停止中）"
+  },
+  "aiUnusedFilterOff": {
+    "message": "不使用（フィルターOFF）"
+  },
+  "aiNotApplicable": {
+    "message": "対象外"
   }
 }
