@@ -1148,5 +1148,8 @@
   },
   "reloadRequiredShort": {
     "message": "ページを再読み込み"
+  },
+  "keywordMatchedVisible": {
+    "message": "通常キーワードに一致していますが、フィルターOFFまたは全件一時表示により表示しています。"
   }
 }

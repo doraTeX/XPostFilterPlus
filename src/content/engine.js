@@ -9,7 +9,8 @@ const freshStats=()=>({requests:0,success:0,failed:0,refused:0,input:0,output:0,
 /** @param {any} api */
 export async function start(api){
  let state=await api.call('GET'),settings=state.settings||{...defaults},epoch=0,active=0,disposed=false,connectionLost=false,scanTimer=0,stopListening=()=>{},stopDisconnectListening=()=>{},paused=false,page=crypto.randomUUID(),url=location.href,view=viewKey(),checks=0,limited=false,stats=freshStats(),rules=[];
- const records=new Map(),observed=new Map(),released=new Set(),inflight=new Map(),results=new Map();
+ const records=new Map(),observed=new Map(),released=new Set(),inflight=new Map(),results=new Map(),normalizedPosts=new Map(),keywordDecisions=new Map();
+ let keywordSignature='';
  const style=document.createElement('style');style.textContent=`[${HIDE}]{display:none!important}`;document.head.append(style);
  const overlay=createOverlay({open:()=>{void api.call('OPEN').catch(showConnectionError);},release:reason=>{if(connectionLost||disposed)return;released.has(reason)?released.delete(reason):released.add(reason);scan();}}),root=overlay.root,host=overlay.host;
  function pause(){if(connectionLost||disposed)return snapshot();paused=!paused;scan();return snapshot();}
@@ -32,7 +33,17 @@ export async function start(api){
   if(hidden)container.setAttribute(HIDE,'');else container.removeAttribute(HIDE);
  }
  function paint(record){
-  const rule=rules.find(r=>normalize(record.post.text,settings,r.sensitive).includes(r.needle));record.keywordReasons=rule&&shouldHide(rule,settings)?[rule.word]:[];const reasons=record.keywordReasons.map(w=>'keyword: '+w);
+  // 正規化は本文・照合設定ごとに高々2回。除外率は同じポストに再適用しない。
+  let normalized=normalizedPosts.get(record.post.identity);
+  if(!normalized){normalized={};normalizedPosts.set(record.post.identity,normalized);if(normalizedPosts.size>500)normalizedPosts.delete(normalizedPosts.keys().next().value);}
+  const rule=rules.find(r=>{
+   if(released.has('keyword: '+r.word))return false;
+   const key=String(r.sensitive);if(normalized[key]===undefined)normalized[key]=normalize(record.post.text,settings,r.sensitive);
+   return normalized[key].includes(r.needle);
+  });
+  let keywordHidden=false;
+  if(rule){let decisions=keywordDecisions.get(record.post.identity);if(!decisions){decisions=new Map();keywordDecisions.set(record.post.identity,decisions);if(keywordDecisions.size>2000)keywordDecisions.delete(keywordDecisions.keys().next().value);}if(!decisions.has(rule))decisions.set(rule,shouldHide(rule,settings));keywordHidden=decisions.get(rule);}
+  record.keywordReasons=keywordHidden?[rule.word]:[];const reasons=record.keywordReasons.map(w=>'keyword: '+w);
   if(!reasons.length&&settings.aiEnabled&&state.ai.ready&&!state.ai.verifying&&!state.ai.stopped){const entry=results.get(identityKey(record.post));if(entry?.scores)entry.scores.forEach((score,i)=>{if(score>=settings.aiThreshold)reasons.push('AI: '+settings.aiConditions[i]);});}
   hide(record,reasons);
  }
@@ -55,8 +66,9 @@ export async function start(api){
     let reason=word.length?t("m_e0b14ab0f48f"):entry?.skipped==='refusal'?t("m_dbb084c9625c"):entry?.skipped?t("m_edd92fd89aaf")+entry.skipped:entry?.scores?t("m_f42765775fd4"):inflight.has(identityKey(r.post))?t("m_4d4581514a7a"):limited?t("m_6825ae3ac081"):!settings.aiEnabled?t("m_4603c00396af"):systemError()||t("m_713c6d0f3a90");
     const score=word.length?null:entry?.scores?.[i]??null;
     const hidden=settings.enabled&&!paused&&(word.length?word.some(w=>!released.has('keyword: '+w)):settings.aiEnabled&&state.ai.ready&&!state.ai.verifying&&!state.ai.stopped&&entry?.scores?.some((s,j)=>s>=settings.aiThreshold&&!released.has('AI: '+settings.aiConditions[j])));
+    if(word.length&&!hidden)reason=t('keywordMatchedVisible');
     const decisive=hidden&&!word.length&&score!==null&&score>=settings.aiThreshold&&!released.has('AI: '+condition);
-    rows.push({postId:r.post.id,text:r.post.text.slice(0,1000),condition,provider:word.length?'':entry?.provider||'',model:word.length?'':entry?.model||'',score,threshold:word.length?null:settings.aiThreshold,aiUsage:!settings.aiEnabled?'off':'not-fetched',source:word.length?t("m_d9acb15aeab3"):entry?.cached?t("m_b7612a6cdb0a"):entry?.scores||entry?.skipped?t("m_11d11a2b6c64"):t("m_e7954a2f3ace"),display:hidden?t("m_8389c10f44c0"):t("m_17efc6654ed2"),reason,keyword:!!word.length,kind:word.length&&hidden?'keyword-excluded-row':!settings.aiEnabled?'other-row':entry?.skipped?'error-row':!word.length&&!entry?.scores?'pending-row':decisive?'excluded-row':'other-row',elapsedMs:word.length?null:entry?.elapsedMs??null});
+    rows.push({postId:r.post.id,text:r.post.text.slice(0,1000),condition,provider:word.length?'':entry?.provider||'',model:word.length?'':entry?.model||'',score,threshold:word.length?null:settings.aiThreshold,aiUsage:!settings.aiEnabled?'off':'not-fetched',source:word.length?t("m_d9acb15aeab3"):entry?.cached?t("m_b7612a6cdb0a"):entry?.scores||entry?.skipped?t("m_11d11a2b6c64"):t("m_e7954a2f3ace"),display:hidden?t("m_8389c10f44c0"):t("m_17efc6654ed2"),reason,keyword:!!word.length,kind:word.length?(hidden?'keyword-excluded-row':'other-row'):!settings.aiEnabled?'other-row':entry?.skipped?'error-row':!word.length&&!entry?.scores?'pending-row':decisive?'excluded-row':'other-row',elapsedMs:word.length?null:entry?.elapsedMs??null});
     if(rows.length>=2000)break;
    }if(rows.length>=2000)break;
   }
@@ -76,8 +88,9 @@ export async function start(api){
  function schedule(){if(!connected()||scanTimer)return;scanTimer=setTimeout(()=>{scanTimer=0;scan();},120);}
  function scan(){
   if(!connected())return;
-  rules=parseRows(settings.rows,settings);
-  if(view!==viewKey()){view=viewKey();url=location.href;epoch++;results.clear();page=crypto.randomUUID();checks=0;limited=false;stats=freshStats();observed.clear();released.clear();paused=false;}
+  const signature=JSON.stringify([settings.rows,settings.ignoreCase,settings.normalizeText,settings.ignoreSeparators,settings.legacyRate]);
+  if(keywordSignature!==signature){keywordSignature=signature;rules=parseRows(settings.rows,settings);normalizedPosts.clear();keywordDecisions.clear();}
+  if(view!==viewKey()){view=viewKey();url=location.href;epoch++;results.clear();page=crypto.randomUUID();checks=0;limited=false;stats=freshStats();observed.clear();released.clear();paused=false;for(const rule of rules)rule.count=0;normalizedPosts.clear();keywordDecisions.clear();}
   for(const [article,r]of records)if(!article.isConnected){r.container?.removeAttribute(HIDE);records.delete(article);}
   for(const article of document.querySelectorAll(ARTICLE)){
    const post=extractPost(article),prior=records.get(article);

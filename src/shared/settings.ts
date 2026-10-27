@@ -18,4 +18,3 @@ export function normalize(text:string,c:Settings,sensitive=!c.ignoreCase){return
 export function parseRows(rows:string[],c:Settings){return originalParseRows(rows,originalConfig(c));}
 export function cleanRows(rows:string[],c:Settings){return originalCleanRows(rows,originalConfig(c));}
 export {shouldHide};
-export function keywordMatches(text:string,c:Settings){return parseRows(c.rows,c).filter((rule:any)=>normalize(text,c,rule.sensitive).includes(rule.needle)).map((rule:any)=>rule.word);}

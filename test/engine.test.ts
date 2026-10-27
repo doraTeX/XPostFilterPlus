@@ -13,6 +13,45 @@ function mock(rows=['セール'],ai=false,decide:()=>Promise<any>=async()=>({sco
  return {api,state};
 }
 async function settle(){for(let i=0;i<30;i++)await Promise.resolve();}
+it.each(['pause','disabled'])('%sでもキーワード一致の記録を保持し、未取得のAI条件へ置き換えない',async mode=>{
+ const cell=fixture(),{api,state}=mock(['セール'],true);if(mode==='disabled')state.settings.enabled=false;
+ engine=await start(api);if(mode==='pause')engine.pause();await settle();
+ const report=engine.snapshot();expect(cell.hasAttribute('data-xpf-hidden')).toBe(false);
+ expect(report.rows).toHaveLength(1);expect(report.rows[0]).toMatchObject({condition:'セール',keyword:true,kind:'other-row',display:'表示',source:'キーワード',score:null,provider:''});
+ expect(report.rows[0].reason).toContain('通常キーワードに一致');expect(report.rows[0].reason).not.toContain('で除外');
+ expect(report.summary).toMatchObject({hidden:0,keyword:0,pending:0});expect(api.call.mock.calls.some(([type])=>type==='DECIDE')).toBe(false);
+ if(mode==='pause')engine.pause();else{state.settings.enabled=true;await engine.refresh();}
+ expect(cell.hasAttribute('data-xpf-hidden')).toBe(true);expect(engine.snapshot().rows[0].kind).toBe('keyword-excluded-row');
+});
+it('フィルターOFFで確定した除外率を、ONに戻しても同じポストへ再適用しない',async()=>{
+ document.body.innerHTML=[1,2].map(id=>`<div data-testid="cellInnerDiv"><article role="article"><a href="/a/status/${id}"><time>今</time></a><div data-testid="tweetText">対象${id}</div></article></div>`).join('');
+ const {api,state}=mock(['対象||rate:50']);state.settings.enabled=false;engine=await start(api);
+ expect(document.querySelectorAll('[data-xpf-hidden]')).toHaveLength(0);
+ state.settings.enabled=true;await engine.refresh();const cells=Array.from(document.querySelectorAll('[data-testid="cellInnerDiv"]'));
+ expect(cells.map(c=>c.hasAttribute('data-xpf-hidden'))).toEqual([true,false]);engine.scan();expect(cells.map(c=>c.hasAttribute('data-xpf-hidden'))).toEqual([true,false]);
+});
+it('除外率の結果をポストごとに保ち、画面外のセル削除・再利用で反転させない',async()=>{
+ document.body.innerHTML=[1,2,3].map(id=>`<div data-testid="cellInnerDiv"><article role="article"><a href="/a/status/${id}"><time>今</time></a><div data-testid="tweetText">対象${id}</div></article></div>`).join('');
+ const {api}=mock(['対象||rate:50']);engine=await start(api);
+ const cells=Array.from(document.querySelectorAll('[data-testid="cellInnerDiv"]'));
+ expect(cells.map(c=>c.hasAttribute('data-xpf-hidden'))).toEqual([true,false,true]);
+ cells[0].remove();engine.scan();engine.scan();
+ expect(cells.slice(1).map(c=>c.hasAttribute('data-xpf-hidden'))).toEqual([false,true]);
+ const returned=cells[0].cloneNode(true) as Element;document.body.append(returned);engine.scan();
+ expect(returned.hasAttribute('data-xpf-hidden')).toBe(true);
+});
+it('キーワードを一時解除すると、同じポストに一致する次の語で除外を続ける',async()=>{
+ const cell=fixture('AとB'),{api}=mock(['A','B']);engine=await start(api);
+ const tag=(word:string)=>engine!.root.querySelector<HTMLButtonElement>(`[data-reason="keyword: ${word}"]`)!;
+ tag('A').click();expect(cell.hasAttribute('data-xpf-hidden')).toBe(true);expect(engine.snapshot().rows[0].condition).toBe('B');
+ tag('B').click();expect(cell.hasAttribute('data-xpf-hidden')).toBe(false);
+ tag('A').click();expect(cell.hasAttribute('data-xpf-hidden')).toBe(true);
+});
+it('本文と照合設定が同じscanでは正規化を繰り返さない',async()=>{
+ fixture('対象の本文');const normal=vi.spyOn(String.prototype,'normalize'),{api}=mock(['不一致','対象||case:1']);engine=await start(api);
+ const before=normal.mock.calls.length;engine.scan();engine.scan();
+ expect(normal).toHaveBeenCalledTimes(before);
+});
 it('同じポストの別条件で除外されても、除外理由となった条件の行だけを色分けする',async()=>{
  const cell=fixture('判定対象'),{api,state}=mock([],true,async()=>({scores:[.61,.82,.8],provider:'jev'}));
  state.settings.aiConditions=['嘲笑・罵倒','攻撃的口調','別の条件'];engine=await start(api);await settle();

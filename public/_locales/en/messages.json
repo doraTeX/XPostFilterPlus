@@ -1148,5 +1148,8 @@
   },
   "reloadRequiredShort": {
     "message": "Reload this page"
+  },
+  "keywordMatchedVisible": {
+    "message": "Matches a keyword, but is visible because filtering is off or all posts are temporarily shown."
   }
 }
