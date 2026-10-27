@@ -56,3 +56,9 @@ it('詳細のない旧形式の判定表でも、記録のない項目を捏造�
  const root=document.createElement('div');fillReport(root,[row]);const details=root.querySelector<HTMLDetailsElement>('details')!;details.open=true;details.dispatchEvent(new Event('toggle'));
  expect(details.textContent).toContain('このタブでの処理記録なし');expect(details.textContent).toContain('送信テキストの記録なし');expect(details.querySelectorAll('pre')).toHaveLength(3);
 });
+
+it.each(['ja','en'])('未取得行の接続先・モデルと結果待ちを%sの表・TSV・Consoleに表示する',lang=>{
+ document.documentElement.lang=lang;try{const pending={...row,provider:'jev',model:'jev-1.13.0',score:null,kind:'pending-row' as const,aiUsage:'not-fetched' as const,reason:lang==='ja'?'通信枠待ち':'Waiting for a request slot'};const root=document.createElement('div');fillReport(root,[pending]);
+ const expected='Jev / jev-1.13.0'+(lang==='ja'?'（判定結果なし）':' (no decision result)');expect(root.querySelector('tbody')!.textContent).toContain(expected);expect(decisionTSV([pending])).toContain(expected);expect(Object.values(reportRecords([pending])[0])).toContain(expected);expect(root.querySelectorAll('tr.pending-row')).toHaveLength(1);
+ }finally{document.documentElement.lang='ja';}
+});

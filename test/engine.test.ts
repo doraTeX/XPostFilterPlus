@@ -9,7 +9,7 @@ function fixture(body='セール実施中',id='123'){
  return document.querySelector('[data-testid="cellInnerDiv"]')!;
 }
 function mock(rows=['セール'],ai=false,decide:()=>Promise<any>=async()=>({scores:[.95]})){
- const state={debugEnabled:false,settings:{...defaults,rows,aiEnabled:ai,aiConditions:['宣伝']},provider:'jev',revision:1,ai:{ready:true,stopped:false,blockedUntil:0}};
+ const state={debugEnabled:false,settings:{...defaults,rows,aiEnabled:ai,aiConditions:['宣伝']},provider:'jev',model:'jev-1.13.0',revision:1,ai:{ready:true,verifying:false,stopped:false,blockedUntil:0}};
  const api={call:vi.fn(async(type:string)=>type==='GET'?structuredClone(state):type==='DECIDE'?decide():undefined),listen:()=>()=>{}};
  return {api,state};
 }
@@ -91,7 +91,7 @@ it('AIがOFFなら通常表示に分類し、キーワードによる除外は�
 it.each([true,false])('AIがONで結果がなければ接続準備=%sでも未取得に分類する',async ready=>{
  fixture();const {api,state}=mock([],true,()=>new Promise(()=>{}));state.ai.ready=ready;
  engine=await start(api);await settle();
- expect(engine.snapshot().rows[0].kind).toBe('pending-row');
+ expect(engine.snapshot().rows[0]).toMatchObject({kind:'pending-row',provider:'jev',model:'jev-1.13.0',score:null});
  expect(engine.snapshot().summary.pending).toBe(1);
 });
 it('キーワードで非表示にし、ツールチップの条件ごとに一時解除・再適用できる',async()=>{
@@ -222,4 +222,15 @@ it('通常設定の旧aiDebugは使わず、タブ内の通知でのみ継続Con
  fixture('本文');const {api,state}=mock();(state.settings as any).aiDebug=true;let receive!:(m:any)=>any;api.listen=((fn:any)=>{receive=fn;return ()=>{};}) as any;
  const output=vi.spyOn(console,'table').mockImplementation(()=>{});engine=await start(api);expect(output).not.toHaveBeenCalled();receive({type:'DEBUG_CHANGED',enabled:true});expect(output).toHaveBeenCalled();expect(engine.snapshot().debugEnabled).toBe(true);
  output.mockClear();receive({type:'DEBUG_CHANGED',enabled:false});engine.scan();expect(output).not.toHaveBeenCalled();expect(engine.snapshot().debugEnabled).toBe(false);
+});
+
+it.each([['jev','jev-1.13.0'],['openai','gpt-6-luna'],['clef','clef'],['clef','clef-flash']])('未取得でも%s / %sを表示し、実送信本文の記録を作らない',async(provider,model)=>{
+ fixture('判定する本文');const {api,state}=mock([],true,()=>new Promise(()=>{}));state.provider=provider;state.model=model;engine=await start(api);
+ const data=engine.snapshot(),row=data.rows[0];expect(row).toMatchObject({provider,model,score:null,kind:'pending-row',elapsedMs:null});expect(row.reason).toContain('判定処理中');expect(data.diagnostics[row.detailsId!].sentText).toBeNull();
+});
+it('画面外・通信枠待ち・接続確認中の未送信をAI応答待ちと区別する',async()=>{
+ const cell=fixture('先に判定する本文');document.body.insertAdjacentHTML('beforeend','<article role="article"><a href="/b/status/456"><time>今</time></a><div data-testid="tweetText">次に判定する本文</div></article>');const {api,state}=mock([],true,()=>new Promise(()=>{}));state.settings.aiConcurrency=1;engine=await start(api);
+ let rows=engine.snapshot().rows;expect(rows[0].reason).toContain('判定処理中');expect(rows[1].reason).toContain('通信枠の空き');
+ const next=document.querySelectorAll('article')[1];vi.spyOn(next,'getBoundingClientRect').mockReturnValue({top:innerHeight+1000,bottom:innerHeight+1200} as DOMRect);rows=engine.snapshot().rows;expect(rows[1].reason).toContain('画面付近');expect(rows[1].provider).toBe('jev');expect(api.call.mock.calls.filter(([type])=>type==='DECIDE')).toHaveLength(1);
+ state.ai.verifying=true;await engine.refresh();expect(engine.snapshot().rows[1].reason).toContain('接続確認中');expect(cell.isConnected).toBe(true);
 });

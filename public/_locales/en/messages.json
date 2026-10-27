@@ -116,7 +116,7 @@
     "message": "Classified"
   },
   "m_4d4581514a7a": {
-    "message": "Request in progress"
+    "message": "Classification in progress: checking the cache, waiting for a request slot, or waiting for the AI response."
   },
   "m_6825ae3ac081": {
     "message": "Request limit reached"
@@ -1332,5 +1332,17 @@
   },
   "settingsPageOpenX": {
     "message": "Open X"
+  },
+  "decisionConnectionCheck": {
+    "message": "Not submitted while the AI connection is being checked. Classification starts after the check."
+  },
+  "decisionWaitingViewport": {
+    "message": "Not submitted until the post is near the visible area."
+  },
+  "decisionWaitingSlot": {
+    "message": "Waiting for an available request slot; not submitted yet."
+  },
+  "decisionNotSubmitted": {
+    "message": "Not submitted yet. Waiting for the next classification pass."
   }
 }

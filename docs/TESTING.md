@@ -2,7 +2,7 @@
 
 ## Automated checks
 
-The X extension has 210 passing tests covering extraction, DOM reuse, routing, temporary overrides, tooltip controls, spinner state, token accounting, provider requests, caches, key verification, error scopes, settings persistence, sync conflicts, bilingual UI, safe report rendering, and report filters.
+The X extension has 217 passing tests covering extraction, DOM reuse, routing, temporary overrides, tooltip controls, spinner state, token accounting, provider requests, caches, key verification, error scopes, settings persistence, sync conflicts, bilingual UI, safe report rendering, and report filters.
 
 `npm run check:i18n` verifies the English and Japanese catalogs and placeholders. `npm run build:extension` checks TypeScript and creates the unpacked extension. Packaging verifies manifest identity and scans for unintended local paths or unrelated endpoints.
 
@@ -102,3 +102,7 @@ All 199 tests and 353 bilingual keys pass. Reports now have a Details column wit
 ## Standalone settings page (2026-10-27)
 
 The standalone page now keeps a localized landing page behind the settings dialog, with automatic-save and per-device credential guidance, Open settings, and Open X. Closing waits for saves and keeps the page available for reopening. Tests cover both languages, delayed saves, failed saves, input-focused Escape, and unexpected native close events. All 210 tests, 358 bilingual keys, and the extension build pass. Chrome local previews confirmed the Japanese and English landing page, reopening, hiding continuous Console output in standalone settings, and retaining it in settings over the mock timeline. The compact Japanese button measures 105 × 39 CSS pixels with a 24-pixel link gap. No real X or provider requests were used.
+
+## Pending provider labels (2026-10-27)
+
+Pending rows show the selected provider and model with no-decision-result status, while keyword-only and bypassed rows retain their unused labels. Tests cover Jev, OpenAI Decisions, both Clef models, viewport deferral, request-slot waits, connection checks, unset readiness, and Japanese/English table, TSV, and Console output. Pending labels do not create submitted-text or elapsed-time records. All 217 tests pass; both resource catalogs contain 362 matching keys. Network and Chrome APIs are mocked.

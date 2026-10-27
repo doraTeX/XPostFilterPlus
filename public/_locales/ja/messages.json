@@ -116,7 +116,7 @@
     "message": "判定済み"
   },
   "m_4d4581514a7a": {
-    "message": "問い合わせ中"
+    "message": "判定処理中（キャッシュ確認・通信枠またはAIの応答待ち）。"
   },
   "m_6825ae3ac081": {
     "message": "問い合わせ上限に到達"
@@ -1332,5 +1332,17 @@
   },
   "settingsPageOpenX": {
     "message": "Xを開く"
+  },
+  "decisionConnectionCheck": {
+    "message": "接続確認中のため未送信です。確認完了後に判定します。"
+  },
+  "decisionWaitingViewport": {
+    "message": "画面付近に表示されるまで未送信です。"
+  },
+  "decisionWaitingSlot": {
+    "message": "通信枠の空きを待っています（未送信）。"
+  },
+  "decisionNotSubmitted": {
+    "message": "まだ問い合わせていません。次の判定処理を待っています。"
   }
 }
