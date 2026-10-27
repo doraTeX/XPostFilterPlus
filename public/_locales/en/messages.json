@@ -1088,7 +1088,7 @@
     "message": "Deselect all"
   },
   "reportFilterEmpty": {
-    "message": "No rows match the selected decisions."
+    "message": "No rows match the selected filters."
   },
   "reportFilterCount": {
     "message": "Showing $COUNT$ / $TOTAL$ rows",
@@ -1347,5 +1347,11 @@
   },
   "aiNotClassified": {
     "message": " (not yet classified)"
+  },
+  "reportTextFilter": {
+    "message": "Filter by post text:"
+  },
+  "reportTextFilterPlaceholder": {
+    "message": "Enter text (partial match)"
   }
 }

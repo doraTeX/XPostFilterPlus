@@ -2,7 +2,7 @@
 
 ## Automated checks
 
-The X extension has 235 passing tests covering extraction, DOM reuse, routing, temporary overrides, tooltip controls, spinner state, token accounting, provider requests, caches, key verification, error scopes, settings persistence, sync conflicts, bilingual UI, safe report rendering, and report filters.
+The X extension has 238 passing tests covering extraction, DOM reuse, routing, temporary overrides, tooltip controls, spinner state, token accounting, provider requests, caches, key verification, error scopes, settings persistence, sync conflicts, bilingual UI, safe report rendering, and report filters.
 
 `npm run check:i18n` verifies the English and Japanese catalogs and placeholders. `npm run build:extension` checks TypeScript and creates the unpacked extension. Packaging verifies manifest identity and scans for unintended local paths or unrelated endpoints.
 
@@ -121,3 +121,12 @@ The X dialog now reports its complete visibility lifecycle, including cleanup pa
 Pending rows whose provider is only planned show “not yet classified”; rows with provider metadata and no score retain “no decision result”. Both labels are checked in English and Japanese in the table, TSV, and Console records. Existing saved reports without the new optional provenance flag retain their earlier label. Keyword-only and disabled-AI rows retain their unused labels. The suite passes 235 tests across 18 files; both catalogs contain 363 matching keys, and TypeScript, the extension build, and ZIP packaging pass. These are mocked checks, not live provider tests.
 
 Audit information items G1/G2 require no change: hover listeners do lightweight work, and pending-reason geometry reads are confined to detailed report generation, including explicitly enabled debug output. Routine status polling skips report rows.
+
+
+## Report text search — 2026-10-27
+
+238 tests across 18 files pass. Report search checks English/Japanese labels, case-insensitive literal partial matching of post text only, combination with category filters, select-all behavior, empty results, clearing the query, and matches after the first 1,000 characters. Reports now retain the full extracted post text; existing report storage size limits remain enforced. Both catalogs contain 365 matching keys, and TypeScript, extension builds, and ZIP packaging pass. Y reports have 159 passing tests and filter the article title only.
+
+In the Chrome local X preview, Japanese search excluded condition-only matches, combined with the AI category checkbox (5/6 rows), and English search accepted uppercase text, showed zero condition-only matches, and restored all six rows after clearing. No live AI requests or changes to installed-extension settings were used.
+
+The search label and field now share one line directly below the source URL. Regression assertions cover placement and per-category search counts, including unchecked categories and count restoration after clearing. Chrome local preview confirmed the horizontal layout and all category counts changing to zero and back to the full matching counts.

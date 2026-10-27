@@ -188,7 +188,7 @@ it('通信中に全件一時表示へ切り替えたら通常表示に分類し�
 });
 it('AI判定の時刻・処理と表示のログ・実際の本文を詳細へ引き継ぎ、軽量取得には載せない',async()=>{
  const text='先頭'.repeat(600)+'\n送信本文の末尾';fixture(text);const {api}=mock([],true,async()=>({scores:[.95],provider:'jev',model:'jev-1.13.0',attempted:true}));engine=await start(api);await settle();
- const data=engine.snapshot(),row=data.rows[0],detail=data.diagnostics[row.detailsId!];expect(row.text.length).toBe(1000);expect(detail.sentText).toBe(text);expect(detail.lastProcessedAt).toMatch(/^\d{4}-/);expect(row.providerPlanned).toBe(false);expect(detail.processingError).toBe(false);expect(detail.processingLog.join('\n')).toContain('判定完了');expect(detail.displayLog.join('\n')).toContain('非表示');expect(row.aiEnabled).toBe(true);
+ const data=engine.snapshot(),row=data.rows[0],detail=data.diagnostics[row.detailsId!];expect(row.text).toBe(text);expect(detail.sentText).toBe(text);expect(detail.lastProcessedAt).toMatch(/^\d{4}-/);expect(row.providerPlanned).toBe(false);expect(detail.processingError).toBe(false);expect(detail.processingLog.join('\n')).toContain('判定完了');expect(detail.displayLog.join('\n')).toContain('非表示');expect(row.aiEnabled).toBe(true);
  expect(engine.snapshot(false).diagnostics).toEqual({});expect(engine.snapshot(false).rows).toEqual([]);
  const count=detail.displayLog.length;engine.scan();engine.scan();expect(engine.snapshot().diagnostics[row.detailsId!].displayLog).toHaveLength(count);
  engine.pause();const paused=engine.snapshot();expect(paused.diagnostics[paused.rows[0].detailsId!].displayLog.join('\n')).toContain('表示：');
@@ -240,4 +240,11 @@ it('チップから設定を開いた後や別の画面からフォーカスが�
  wrap.dispatchEvent(new Event('mouseenter'));badge.focus();expect(tip.style.display).toBe('block');badge.click();expect(tip.style.display).toBe('none');expect(pause.hidden).toBe(true);
  const field=document.createElement('input');document.body.append(field);field.focus();badge.focus();await Promise.resolve();engine.scan();expect(tip.style.display).toBe('none');expect(pause.hidden).toBe(true);
  wrap.dispatchEvent(new Event('mouseenter'));expect(tip.style.display).toBe('block');document.body.dispatchEvent(new MouseEvent('pointermove',{bubbles:true,composed:true}));expect(tip.style.display).toBe('none');expect(pause.hidden).toBe(true);
+});
+
+
+it('判定詳細の本文を1000文字で切らず、長いポストの末尾も絞り込める',async()=>{
+ const text='長文'.repeat(600)+'末尾検索語';fixture(text);const {api}=mock([],false);engine=await start(api);
+ const snapshot=engine.snapshot();expect(snapshot.rows[0].text).toBe(text);
+ const root=document.createElement('div');fillReport(root,snapshot.rows);const search=root.querySelector<HTMLInputElement>('#report-text-filter')!;search.value='末尾検索語';search.dispatchEvent(new Event('input'));expect(root.querySelector<HTMLTableRowElement>('tbody tr')!.hidden).toBe(false);
 });

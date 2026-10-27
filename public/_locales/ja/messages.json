@@ -1088,7 +1088,7 @@
     "message": "すべて選択解除"
   },
   "reportFilterEmpty": {
-    "message": "選択した判定に該当する行はありません。"
+    "message": "絞り込み条件に該当する行はありません。"
   },
   "reportFilterCount": {
     "message": "$COUNT$ / $TOTAL$ 行を表示",
@@ -1347,5 +1347,11 @@
   },
   "aiNotClassified": {
     "message": "（未判定）"
+  },
+  "reportTextFilter": {
+    "message": "ポスト本文で絞り込み："
+  },
+  "reportTextFilterPlaceholder": {
+    "message": "単語を入力（部分一致）"
   }
 }

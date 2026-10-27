@@ -62,3 +62,21 @@ it.each([['ja',true],['ja',false],['en',true],['en',false]])('接続先と結果
  const suffix=planned?(lang==='ja'?'（未判定）':' (not yet classified)'):(lang==='ja'?'（判定結果なし）':' (no decision result)'),expected='Jev / jev-1.13.0'+suffix;expect(root.querySelector('tbody')!.textContent).toContain(expected);expect(decisionTSV([pending])).toContain(expected);expect(Object.values(reportRecords([pending])[0])).toContain(expected);expect(root.querySelectorAll('tr.pending-row')).toHaveLength(1);
  }finally{document.documentElement.lang='ja';}
 });
+
+
+it.each(['ja','en'])('%sでポスト本文のみを検索し、判定種別と組み合わせて件数を更新する',lang=>{
+ document.documentElement.lang=lang;
+ try{
+  const root=document.createElement('div');document.body.append(root);fillReport(root,[{...row,text:'AIの話題',kind:'excluded-row'},{...row,text:'文化の話題',condition:'AI',kind:'other-row'},{...row,text:'x'.repeat(1100)+'Needle',kind:'other-row'}]);
+  const search=root.querySelector<HTMLInputElement>('#report-text-filter')!,query=(value:string)=>{search.value=value;search.dispatchEvent(new Event('input'));};
+  expect(search.parentElement!.textContent).toBe(lang==='ja'?'ポスト本文で絞り込み：':'Filter by post text:');expect(search.parentElement!.previousElementSibling!.tagName).toBe('P');expect(search.parentElement!.nextElementSibling!.className).toBe('filters');
+  const hits=(kind:string)=>root.querySelector(`[data-filter="${kind}"]`)!.parentElement!.querySelector('[data-filter-count]')!.textContent;
+  const count=()=>Array.from(root.querySelectorAll<HTMLTableRowElement>('tbody tr')).filter(row=>!row.hidden).length;
+  query(' ai ');expect(hits('excluded-row')).toBe('1');expect(hits('other-row')).toBe('0');expect(hits('error-row')).toBe('0');expect(count()).toBe(1);expect(root.querySelector('#filter-count')!.textContent).toContain('1 / 3');
+  root.querySelector<HTMLInputElement>('[data-filter="excluded-row"]')!.click();expect(count()).toBe(0);expect(root.querySelector<HTMLElement>('#filter-empty')!.hidden).toBe(false);expect(hits('excluded-row')).toBe('1');
+  root.querySelectorAll<HTMLButtonElement>('.filter-actions button')[0].click();expect(count()).toBe(1);
+  query('文化');expect(hits('excluded-row')).toBe('0');expect(hits('other-row')).toBe('1');expect(count()).toBe(1);query('needle');expect(count()).toBe(1);
+  query('<img>');expect(count()).toBe(0);expect(root.querySelector('img')).toBeNull();
+  query('');expect(hits('excluded-row')).toBe('1');expect(hits('other-row')).toBe('2');expect(count()).toBe(3);expect(root.querySelector<HTMLElement>('#filter-empty')!.hidden).toBe(true);
+ }finally{document.documentElement.lang='ja';}
+});

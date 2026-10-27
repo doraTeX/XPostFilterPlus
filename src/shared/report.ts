@@ -21,13 +21,14 @@ export function fillReport(root:HTMLElement,rows:DecisionRow[],meta:{time?:numbe
  const h=<K extends keyof HTMLElementTagNameMap>(tag:K,text='',parent:HTMLElement=root,cls='')=>{const e=document.createElement(tag);e.textContent=text;if(cls)e.className=cls;parent.append(e);return e;};
  const stamp=h('p',t('reportStamp',[new Date(meta.time||Date.now()).toLocaleString(language()),rows.length]));
  if(meta.url){h('br','',stamp);stamp.append(document.createTextNode(t('reportSource')));try{const url=new URL(meta.url);if(url.protocol==='https:'&&['x.com','twitter.com'].includes(url.hostname)){const link=h('a',url.href,stamp);link.href=url.href;link.target='_blank';link.rel='noopener noreferrer';}}catch{}}
+ const searchLabel=h('label',t('reportTextFilter'),root,'text-filter'),search=h('input','',searchLabel);search.type='search';search.id='report-text-filter';search.placeholder=t('reportTextFilterPlaceholder');
  const filters:[RowKind,string,string,string][]=[['keyword-excluded-row',t('filterKeyword'),'#e2e3ef',t('guideKeyword')],['excluded-row',t('filterExcluded'),'#fff0f3',t('guideExcluded')],['pending-row',t('filterPending'),'#d9f2f5',t('guidePending')],['error-row',t('filterError'),'#ffdfbd',t('guideError')],['other-row',t('filterVisible'),'#e9eff5',t('guideVisible')]];
  const kind=(row:DecisionRow):RowKind=>row.kind==='keyword-excluded-row'?'keyword-excluded-row':row.aiUsage&&row.aiUsage!=='not-fetched'?'other-row':row.kind||(!row.provider?'pending-row':row.score===null?'error-row':row.threshold!==null&&row.score>=row.threshold?'excluded-row':'other-row');
  const filterCounts=new Map<RowKind,number>();for(const row of rows){const key=kind(row);filterCounts.set(key,(filterCounts.get(key)||0)+1);}
  const controls=h('fieldset','',root,'filters');h('legend',t('reportFilters'),controls);const actions=h('div','',controls,'filter-actions');
- const all=h('button',t('reportSelectAll'),actions),none=h('button',t('reportSelectNone'),actions);all.type=none.type='button';const inputs:HTMLInputElement[]=[];
+ const all=h('button',t('reportSelectAll'),actions),none=h('button',t('reportSelectNone'),actions);all.type=none.type='button';const inputs:HTMLInputElement[]=[],countNodes=new Map<string,HTMLElement>();
 
- for(const [name,label,color]of filters){const l=h('label','',controls,'tag filter-label');l.style.background=color;const input=h('input','',l);input.type='checkbox';input.checked=true;input.dataset.filter=name;l.append(document.createTextNode(`${label} (${filterCounts.get(name)||0})`));inputs.push(input);}
+ for(const [name,label,color]of filters){const l=h('label','',controls,'tag filter-label');l.style.background=color;const input=h('input','',l);input.type='checkbox';input.checked=true;input.dataset.filter=name;const caption=h('span',`${label} (`,l),count=h('span',String(filterCounts.get(name)||0),caption);count.dataset.filterCount='';countNodes.set(name,count);caption.append(document.createTextNode(')'));inputs.push(input);}
  const guide=h('dl','',root,'filter-guide');for(const [,label,,explanation]of filters){h('dt',label,guide);h('dd',explanation,guide);}
  const counter=h('p','',root);counter.id='filter-count';counter.setAttribute('role','status');const empty=h('p',t('reportFilterEmpty'),root);empty.id='filter-empty';
  const wrap=h('div','',root,'table-wrap'),table=h('table','',wrap,'report-table'),head=h('thead','',table),heading=h('tr','',head);for(const label of [...reportHeaders(),t('detailColumn')]){const th=h('th',label,heading);th.scope='col';}
@@ -45,7 +46,8 @@ export function fillReport(root:HTMLElement,rows:DecisionRow[],meta:{time?:numbe
    h('pre',detail?.sentText??t('detailNoSentText'),details);
   });
  }
- function update(){const selected=new Set(inputs.filter(e=>e.checked).map(e=>e.dataset.filter));let count=0;for(const tr of Array.from(body.rows)){tr.hidden=!selected.has(tr.className);if(!tr.hidden)count++;}counter.textContent=t('reportFilterCount',[count,rows.length]);empty.hidden=count!==0;}
- inputs.forEach(e=>e.onchange=update);all.onclick=()=>{inputs.forEach(e=>e.checked=true);update();};none.onclick=()=>{inputs.forEach(e=>e.checked=false);update();};update();
+ const texts=rows.map(row=>row.text.toLowerCase());
+ function update(){const selected=new Set(inputs.filter(e=>e.checked).map(e=>e.dataset.filter)),query=search.value.trim().toLowerCase(),matches=new Map<string,number>();let count=0;for(const [i,tr] of Array.from(body.rows).entries()){const match=texts[i].includes(query);if(match)matches.set(tr.className,(matches.get(tr.className)||0)+1);tr.hidden=!selected.has(tr.className)||!match;if(!tr.hidden)count++;}for(const [name,node]of countNodes)node.textContent=String(matches.get(name)||0);counter.textContent=t('reportFilterCount',[count,rows.length]);empty.hidden=count!==0;}
+ search.addEventListener('input',update);inputs.forEach(e=>e.onchange=update);all.onclick=()=>{inputs.forEach(e=>e.checked=true);update();};none.onclick=()=>{inputs.forEach(e=>e.checked=false);update();};update();
  if(!rows.length)h('p',t('m_4b484f018ece'));
 }
