@@ -24,3 +24,5 @@ The count chip and toolbar open a native modal dialog in the current X tab, styl
 The dialog forwards Escape to the dashboard, which keeps the dialog open while an input field is focused and otherwise saves before closing. The dashboard performs browser permission requests directly from the user click; the background checks the actual granted permission before verification. Confirmation dialogs and requested TSV copying run in the originating top-level content script, without sending credentials through that route. Decision rows include a validated author handle and canonical X profile link; author metadata is not added to provider requests.
 
 Chrome reference: [web-accessible resources](https://developer.chrome.com/docs/extensions/reference/manifest/web-accessible-resources).
+
+If no content script can open the dialog, the same originating tab ID is retained in a reusable fallback settings tab. A top-frame startup message revokes stale frame grants after a reload. Unexpected native dialog closure reopens the existing frame; only the authenticated close response after saving removes it.

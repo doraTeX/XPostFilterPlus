@@ -2,7 +2,7 @@
 
 ## Automated checks
 
-The X extension has 133 passing tests covering extraction, DOM reuse, routing, temporary overrides, tooltip controls, spinner state, token accounting, provider requests, caches, key verification, error scopes, settings persistence, sync conflicts, bilingual UI, safe report rendering, and report filters.
+The X extension has 142 passing tests covering extraction, DOM reuse, routing, temporary overrides, tooltip controls, spinner state, token accounting, provider requests, caches, key verification, error scopes, settings persistence, sync conflicts, bilingual UI, safe report rendering, and report filters.
 
 `npm run check:i18n` verifies the English and Japanese catalogs and placeholders. `npm run build:extension` checks TypeScript and creates the unpacked extension. Packaging verifies manifest identity and scans for unintended local paths or unrelated endpoints.
 
@@ -55,3 +55,11 @@ Chrome local previews verified the red pause / green play controls and visible h
 X: 133 tests pass; Y!News: 125 tests pass. AI off, no conditions, filtering off, and temporarily showing all posts are classified as normal visibility, with no pending count. Rows and TSV exports give the reason AI is unused instead of implying a request is still awaiting a result. Missing credentials or provider failures remain distinct from these intentional bypass states.
 
 The empty-condition regression uses one keyword exclusion and eleven normal posts, then adds a condition to verify that classification starts again. The Y!News regression also checks enabling highlights by adding only an interest condition. Chrome's local mock preview confirmed one keyword exclusion, eleven normal rows, and zero pending rows in the X report; no live API calls were used.
+
+## Settings audit follow-up (2026-10-27)
+
+All 142 X tests and 127 Y!News tests pass. Added coverage includes fallback settings when a content script is unavailable, reusing that settings tab, retaining the originating X tab, bilingual reload guidance, expiring an old frame grant on page startup, and recovering from a native dialog close before saving finishes.
+
+Chrome local previews used real dialogs and the production settings UI with simulated save failures. In both extensions, three consecutive Escape presses while editing retained the input; a failed Close operation also kept it visible. On the real X page, the refreshed extension displayed its chip and opened the embedded settings UI. Chrome then blocked further automation while extension UI was open. The user manually confirmed that the permission dialog opens and the copied TSV can be pasted. X lacked the Copied! feedback, so matching success feedback was added and is shown only after copying succeeds. Automated tests and local previews make no live AI requests; the manual checks do not establish provider accuracy.
+
+After updating the build, the user also confirmed that the Copied! feedback appears successfully on the real X page.

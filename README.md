@@ -8,7 +8,7 @@ An unofficial Chrome extension that hides X posts using keyword matching and AI 
 
 1. Open `chrome://extensions` and enable Developer mode.
 2. Select **Load unpacked**, then choose this project's **dist** folder.
-3. Reload X. Open settings from the extension icon or the hidden-post count chip. Settings appear as a modal dialog over the current X page.
+3. Reload X. Open settings from the extension icon or the hidden-post count chip. Settings appear as a modal dialog over the current X page. If the extension is not yet running in that tab, settings open in a separate tab with instructions to reload the original X page.
 
 After rebuilding, reload both the extension and the X page.
 
