@@ -988,7 +988,7 @@
     "message": "XPostFilterPlus"
   },
   "extDescription": {
-    "message": "Unofficial extension for hiding X posts with keywords and AI. Not affiliated with X Corp."
+    "message": "Unofficial extension to hide X (formerly Twitter) posts with keywords and AI. Supports Jev, OpenAI Decisions, and Cloudflare Clef."
   },
   "actionTitle": {
     "message": "XPostFilterPlus settings"

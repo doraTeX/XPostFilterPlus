@@ -988,7 +988,7 @@
     "message": "XPostFilterPlus"
   },
   "extDescription": {
-    "message": "Xのポスト本文をキーワードやAIの意味判定で非表示にする非公式拡張です。X社とは無関係です。"
+    "message": "X（旧Twitter）のポストをキーワードやAIの意味判定で非表示にする非公式拡張です。Jev、OpenAI Decisions、Cloudflare Clef対応。"
   },
   "actionTitle": {
     "message": "XPostFilterPlus 設定"
