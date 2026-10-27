@@ -75,3 +75,7 @@ Chrome local previews confirmed that the X settings load-error screen can be clo
 ## Storage notification availability (2026-10-27)
 
 All 164 tests pass. The dashboard no longer assumes chrome.storage.onChanged is available. If accessing or subscribing to it fails, authenticated settings refreshes run every 1.5 seconds until the dashboard is disposed. The usual notification path still filters local settings changes and performs no additional polling. Coverage includes absent APIs, a throwing storage getter, subscription failure, and cleanup after extension invalidation. This regression is covered with mocked Chrome APIs; installed-extension verification requires reloading the extension and X page.
+
+## Closing-message target origin (2026-10-27)
+
+The settings load-error screen sends its empty-editor close message only to the actual immediate parent origin obtained from Chrome's ancestorOrigins, and only when that origin is https://x.com or https://twitter.com. It does not use a wildcard. The parent still verifies the source frame and extension origin. All 23 tests in the three related suites pass, covering both allowed parents and rejecting unknown or lookalike origins. Bilingual resources and the production build pass; the new path has not been rechecked on a live X page.
