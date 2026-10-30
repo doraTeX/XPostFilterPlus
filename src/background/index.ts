@@ -58,10 +58,10 @@ async function handle(m:any,sender:chrome.runtime.MessageSender){
  if(m.type==='CONFIRM')return editor.forward(sender,m.editorToken,'CONFIRM_SETTINGS',m.value);
  if(m.type==='COPY')return editor.forward(sender,m.editorToken,'COPY_SETTINGS',m.value);
  if(m.type==='PAGE'||m.type==='PAUSE'){if(m.tabId!==undefined&&!Number.isInteger(m.tabId))throw Error(t("m_18e5f67c26de"));return pageData(m.tabId,m.type==='PAUSE'?'PAUSE':'SNAPSHOT',m.details===true);}
- if(m.type==='SYNC_STATUS')return syncStore.state();
- if(m.type==='SYNC'){await syncStore.queue(()=>reconcileSync());return syncStore.state();}
- if(m.type==='SYNC_ENABLED'){if(typeof m.enabled!=='boolean')throw Error(t("m_495dc1760a51"));await syncStore.queue(async()=>{await syncStore.setEnabled(m.enabled);await reconcileSync();});return syncStore.state();}
- if(m.type==='SYNC_RESOLVE'){await syncStore.queue(async()=>{await syncStore.resolve(m.doc);});return syncStore.state();}
+ if(m.type==='SYNC_STATUS')return syncStore.queue(()=>syncStore.status());
+ if(m.type==='SYNC'){await syncStore.queue(()=>reconcileSync());return syncStore.status();}
+ if(m.type==='SYNC_ENABLED'){if(typeof m.enabled!=='boolean')throw Error(t("m_495dc1760a51"));await syncStore.queue(async()=>{await syncStore.setEnabled(m.enabled);await reconcileSync();});return syncStore.status();}
+ if(m.type==='SYNC_RESOLVE'){await syncStore.queue(async()=>{await syncStore.resolve(m.doc);});return syncStore.status();}
  if(m.type==='REPORT')return reportTransaction(async()=>{
   const data=await pageData(m.tabId,'SNAPSHOT',true),id=crypto.randomUUID(),key='xpf_report:'+id;
   const report={rows:data.rows,diagnostics:data.diagnostics||{},time:Date.now(),url:data.url||'',title:data.title||''},bytes=(value:unknown)=>new TextEncoder().encode(JSON.stringify(value)).length,limit=6*1024*1024;

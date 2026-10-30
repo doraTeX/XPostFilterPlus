@@ -104,3 +104,14 @@ it('デバッグ継続出力は通常のSAVEに混ぜず、元のタブの専用
  field.click();await vi.waitFor(()=>expect(field.disabled).toBe(false));expect(field.checked).toBe(true);await dashboard!.save();expect(api.call).toHaveBeenCalledWith('DEBUG_SET',{tabId:1,enabled:true});expect(api.call.mock.calls.filter(c=>c[0]==='SAVE')).toHaveLength(0);
  await dashboard!.refreshPage();expect(field.checked).toBe(true);
 });
+
+
+it.each(['ja','en'])('%sで競合のローカル・クラウドタグを付け、候補をそのまま採用する',async lang=>{
+ document.documentElement.lang=lang;try{
+  const {root,api}=await setup(),docs=[{clock:{cloud:1},settings:{...defaults,rows:['cloud']}},{clock:{local:1},settings:{...defaults,rows:['local']}}];
+  api.call.mockImplementation(async(type:string)=>type.startsWith('SYNC')?{enabled:true,message:'conflict',conflicts:docs,conflictSources:['cloud','local']}:{settings:defaults,local:{provider:'jev',profiles:{}},ai:{ready:false},history:[]});
+  click(root,lang==='ja'?'同期を確認':'Check sync');await vi.waitFor(()=>expect(root.querySelectorAll('.sync-origin')).toHaveLength(2));
+  expect(Array.from(root.querySelectorAll('.sync-origin')).map(tag=>tag.textContent)).toEqual(lang==='ja'?['クラウド','ローカル']:['Cloud','Local']);
+  const cards=Array.from(root.querySelectorAll('.sync-conflict-card'));expect(cards).toHaveLength(2);expect(cards[0].querySelector('code')!.textContent).toContain('cloud');expect(cards[1].querySelector('code')!.textContent).toContain('local');expect(cards[1].querySelector<HTMLPreElement>('pre')!.tabIndex).toBe(0);expect(cards.map(card=>card.querySelector('button')!.textContent)).toEqual(lang==='ja'?['設定1を採用','設定2を採用']:['Use settings 1','Use settings 2']);cards[1].querySelector<HTMLButtonElement>('button')!.click();await vi.waitFor(()=>expect(api.call).toHaveBeenCalledWith('SYNC_RESOLVE',{doc:docs[1]}));
+ }finally{document.documentElement.lang='ja';}
+});

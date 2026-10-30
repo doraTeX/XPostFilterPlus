@@ -2,7 +2,7 @@ Single purpose
 Hide X posts based on keywords entered by the user or semantic conditions evaluated by an optional user-selected AI provider: Jev, OpenAI Decisions, or Cloudflare Clef.
 
 Justification for storage
-Store exclusion keywords, AI conditions, display settings, provider configuration, API keys or tokens, decision caches, and settings history in chrome.storage. If the user enables Chrome sync, synchronize keywords, conditions, and display settings between Chrome profiles signed into the same Google account. Credentials, provider configuration, and caches are excluded from sync and settings exports.
+Store exclusion keywords, AI conditions, display settings, provider configuration, API keys or tokens, decision caches, and settings history in chrome.storage. The extension’s sync setting is on by default and can be turned off in settings. While enabled, use Chrome sync to synchronize keywords, conditions, and display settings between Chrome profiles signed into the same Google account. Credentials, provider configuration, and caches are excluded from sync and settings exports.
 
 Justification for alarms
 Retry failed Chrome sync writes and periodically check for changes from other devices while sync is enabled. A persistent alarm can wake the service worker to resume sync. The alarm is cleared when sync is disabled.

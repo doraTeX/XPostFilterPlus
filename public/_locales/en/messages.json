@@ -447,7 +447,7 @@
     "message": "Checking…"
   },
   "m_013c71adf239": {
-    "message": "Enable Chrome sync using the same Google account. API keys and caches are not synced."
+    "message": "Chrome sync is on by default. Enable Chrome sync using the same Google account. API keys and caches are not synced."
   },
   "m_a203b5da9f76": {
     "message": "Enable Chrome sync"
@@ -1353,5 +1353,27 @@
   },
   "reportTextFilterPlaceholder": {
     "message": "Enter text (partial match)"
+  },
+  "syncOriginLocal": {
+    "message": "Local"
+  },
+  "syncOriginCloud": {
+    "message": "Cloud"
+  },
+  "syncAdoptSettings": {
+    "message": "Use settings $number$",
+    "placeholders": {
+      "number": {
+        "content": "$1"
+      }
+    }
+  },
+  "syncSettingsJSON": {
+    "message": "Settings $number$ contents (JSON)",
+    "placeholders": {
+      "number": {
+        "content": "$1"
+      }
+    }
   }
 }

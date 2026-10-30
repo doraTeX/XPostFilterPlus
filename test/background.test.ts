@@ -124,3 +124,9 @@ it('設定フレームのデバッグ操作も元のXタブに限定する',asyn
  expect(chrome.tabs.sendMessage).toHaveBeenCalledWith(1,{type:'DEBUG_CHANGED',enabled:true},{frameId:0});
  await expect(send({type:'DEBUG_SET',enabled:'true',editorToken:token},frameSender)).rejects.toThrow();
 });
+
+
+it('初回起動でChrome同期がONとなり、定期確認アラームを登録する',async()=>{
+ await vi.waitFor(()=>expect(chrome.alarms.create).toHaveBeenCalledWith('xpf-sync',expect.objectContaining({periodInMinutes:5})));
+ expect(local.xpf_sync_state.enabled).toBe(true);expect(chrome.storage.sync.get).toHaveBeenCalledWith(null);
+});

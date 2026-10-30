@@ -3,17 +3,22 @@ import {SETTINGS,HISTORY,parseDoc,newDoc,heads,encodeDoc,decodeRemote,assertQuot
 import {validate,defaults} from '../shared/settings';
 const STATE='xpf_sync_state';
 export const SYNC_ALARM='xpf-sync';
-type State={device:string;enabled:boolean;doc:Doc|null;pending:boolean;conflicts:Doc[];message:string};
+type State={device:string;enabled:boolean;doc:Doc|null;pending:boolean;conflicts:Doc[];localConflictClock?:Doc['clock']|null;message:string};
 export class SyncStore{
  private chain=Promise.resolve();
  constructor(private transaction:<T>(fn:()=>Promise<T>)=>Promise<T>=fn=>fn()){}
  queue<T>(fn:()=>Promise<T>):Promise<T>{const run=()=>this.transaction(fn),result=this.chain.then(run,run);this.chain=result.then(()=>{},()=>{});return result;}
  async state():Promise<State>{
-  const s:State=(await chrome.storage.local.get(STATE))[STATE]??{device:crypto.randomUUID(),enabled:false,doc:null,pending:false,conflicts:[],message:t("m_46c87f5d6b04")};
+  const s:State=(await chrome.storage.local.get(STATE))[STATE]??{device:crypto.randomUUID(),enabled:true,doc:null,pending:false,conflicts:[],message:t("m_cce48784c8ce")};
   // ローカルの同期履歴にも、新しい設定項目の既定値を補う。
   if(s.doc)s.doc=parseDoc(JSON.stringify(s.doc));
   s.conflicts=s.conflicts.map(d=>parseDoc(JSON.stringify(d)));
   return s;
+ }
+ async status(){
+  const s=await this.state(),clock=s.localConflictClock===undefined?s.doc?.clock:s.localConflictClock;
+  const conflictSources=s.conflicts.map(doc=>clock&&Object.keys(clock).length===Object.keys(doc.clock).length&&Object.keys(clock).every(key=>clock[key]===doc.clock[key])?'local':'cloud');
+  return {...s,conflictSources};
  }
  async remember(s:State){await chrome.storage.local.set({[STATE]:s});}
  async history(next:Settings,reason:string){
@@ -52,9 +57,9 @@ export class SyncStore{
     s.pending=false;
    }
    const candidates=heads([...remote,...(s.doc?[s.doc]:[])]);
-   if(new Set(candidates.map(d=>JSON.stringify(d.settings))).size>1){s.conflicts=candidates;s.message=t("m_d6009c667f5c");}
+   if(new Set(candidates.map(d=>JSON.stringify(d.settings))).size>1){s.conflicts=candidates;s.localConflictClock=s.doc?{...s.doc.clock}:null;s.message=t("m_d6009c667f5c");}
    else if(candidates.length){
-    const chosen=candidates[0];s.conflicts=[];
+    const chosen=candidates[0];s.conflicts=[];s.localConflictClock=null;
     // 同内容の並行更新は時計を結合する。次の編集時に全てを継承。
     const clock:Record<string,number>={};for(const d of candidates)for(const[k,v]of Object.entries(d.clock))clock[k]=Math.max(clock[k]||0,v);
     s.doc={...chosen,clock};await this.history(chosen.settings,'chrome-sync');await chrome.storage.local.set({[SETTINGS]:chosen.settings});
@@ -67,9 +72,9 @@ export class SyncStore{
  async resolve(value:unknown){
   const chosen=parseDoc(JSON.stringify(value)),s=await this.state();
   const remote=await decodeRemote(await chrome.storage.sync.get(null));const current=heads([...remote,...(s.doc?[s.doc]:[])]);
-  if(JSON.stringify(current)!==JSON.stringify(s.conflicts))throw Error(t("m_6b7b75731795"));
+  if(JSON.stringify(current.map(doc=>JSON.stringify(doc)).sort())!==JSON.stringify(s.conflicts.map(doc=>JSON.stringify(doc)).sort()))throw Error(t("m_6b7b75731795"));
   if(!current.some(d=>JSON.stringify(d)===JSON.stringify(chosen)))throw Error(t("m_dfcfb4733d99"));
-  await this.history(chosen.settings,'conflict-resolution');s.doc=newDoc(chosen.settings,s.device,current);s.pending=true;s.conflicts=[];
+  await this.history(chosen.settings,'conflict-resolution');s.doc=newDoc(chosen.settings,s.device,current);s.pending=true;s.conflicts=[];s.localConflictClock=null;
   await chrome.storage.local.set({[SETTINGS]:chosen.settings,[STATE]:s});await this.reconcile();
  }
 }

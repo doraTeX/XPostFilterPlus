@@ -447,7 +447,7 @@
     "message": "確認中…"
   },
   "m_013c71adf239": {
-    "message": "同じGoogleアカウントでChromeの同期を有効にしてください。APIキー・キャッシュは同期しません。"
+    "message": "Chrome同期は初期状態で有効です。同じGoogleアカウントでChromeの同期を有効にしてください。APIキー・キャッシュは同期しません。"
   },
   "m_a203b5da9f76": {
     "message": "Chrome同期を有効にする"
@@ -1353,5 +1353,27 @@
   },
   "reportTextFilterPlaceholder": {
     "message": "単語を入力（部分一致）"
+  },
+  "syncOriginLocal": {
+    "message": "ローカル"
+  },
+  "syncOriginCloud": {
+    "message": "クラウド"
+  },
+  "syncAdoptSettings": {
+    "message": "設定$number$を採用",
+    "placeholders": {
+      "number": {
+        "content": "$1"
+      }
+    }
+  },
+  "syncSettingsJSON": {
+    "message": "設定$number$の内容（JSON）",
+    "placeholders": {
+      "number": {
+        "content": "$1"
+      }
+    }
   }
 }

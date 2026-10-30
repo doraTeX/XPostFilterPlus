@@ -6,7 +6,7 @@ When AI classification is enabled, post text and your classification conditions 
 
 The extension does not send data to developer-operated servers, advertising services, or analytics services.
 
-Keywords, AI conditions, provider settings, API keys, up to 10 previous settings, and decision caches are stored in Chrome's local extension storage. If you enable Chrome sync, keywords, classification conditions, and display settings are also stored in Chrome sync for your Google account. API keys and caches are excluded from sync, JSON exports, and settings history.
+Keywords, AI conditions, provider settings, API keys, up to 10 previous settings, and decision caches are stored in Chrome's local extension storage. Chrome sync is on by default when no sync preference has been saved; existing on/off preferences are preserved. While enabled, keywords, classification conditions, and display settings are also stored in Chrome sync for your Google account. You can turn it off in the extension settings. API keys and caches are excluded from sync, JSON exports, and settings history.
 
 API keys remain in the background and trusted extension settings frame in the dialog (or the standalone options page); they are not returned to X content scripts. Decision caches contain hashes of inputs and decision scores rather than post text. Cache entries are valid for 7 days, with up to 2,000 entries and a storage limit of approximately 2 MB. Temporary failure records expire after 10 minutes.
 
