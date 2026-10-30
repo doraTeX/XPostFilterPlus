@@ -1,3 +1,4 @@
+import {listenForSettingsOpen} from '../shared/settings-page-events';
 import {t,language} from '../shared/i18n';
 import {mountDashboard} from './ui';
 import {observeSettings} from './settings-events';
@@ -29,7 +30,8 @@ async function requestClose(){
 }
 const page=embedded?undefined:createSettingsPage(document.getElementById('app')!,requestClose,()=>dashboard?.focus());
 const unbindClose=bindCloseEvents(requestClose,embedded);
-window.addEventListener('pagehide',()=>{unbindClose();dashboard?.dispose();page?.dispose();},{once:true});
+let disposed=false,stopOpen=()=>{};if(!embedded)void listenForSettingsOpen(()=>page?.open()).then(stop=>{if(disposed)stop();else stopOpen=stop;});
+window.addEventListener('pagehide',()=>{disposed=true;stopOpen();unbindClose();dashboard?.dispose();page?.dispose();},{once:true});
 void mountDashboard(document.getElementById('app')!,{
  call:invoke,
  ...(embedded?{confirm:async(value:string)=>!!await invoke('CONFIRM',{value}),copy:async(value:string)=>{await invoke('COPY',{value});}}:{}),

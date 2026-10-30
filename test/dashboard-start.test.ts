@@ -46,3 +46,11 @@ it('専用ページのダイアログも入力中のEsc・強制close・保存�
  dialog.close();expect(dialog.open).toBe(true);expect(field.value).toBe('未保存の条件');expect(document.activeElement).toBe(field);
  field.blur();window.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape'}));await Promise.resolve();expect(close).toHaveBeenCalledOnce();expect(dialog.open).toBe(true);expect(field.value).toBe('未保存の条件');
 });
+
+
+it('専用ページの入口でもツールバー通知で同じ編集画面を開き直す',async()=>{
+ vi.stubGlobal('parent',window);let listener:any,api:any;
+ vi.stubGlobal('chrome',{runtime:{id:'test',onMessage:{addListener:(fn:any)=>{listener=fn;},removeListener:vi.fn()}},tabs:{getCurrent:async()=>({id:7})}});
+ mocks.mount.mockImplementation(async(_root,bridge)=>{api=bridge;return {close:vi.fn(),focus:vi.fn(),dispose:vi.fn()};});await import('../src/dashboard/main');await vi.waitFor(()=>expect(listener).toBeTypeOf('function'));
+ await api.call('CLOSE');const dialog=document.querySelector('dialog')!;expect(dialog.open).toBe(false);const respond=vi.fn();listener({type:'OPEN_SETTINGS_PAGE',tabId:7},{id:'test'},respond);expect(dialog.open).toBe(true);expect(respond).toHaveBeenCalledWith({opened:true});expect(mocks.mount).toHaveBeenCalledTimes(1);
+});

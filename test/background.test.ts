@@ -130,3 +130,10 @@ it('初回起動でChrome同期がONとなり、定期確認アラームを登�
  await vi.waitFor(()=>expect(chrome.alarms.create).toHaveBeenCalledWith('xpf-sync',expect.objectContaining({periodInMinutes:5})));
  expect(local.xpf_sync_state.enabled).toBe(true);expect(chrome.storage.sync.get).toHaveBeenCalledWith(null);
 });
+
+
+it('設定専用タブ上のツールバー操作は同じタブのダイアログを開き直す',async()=>{
+ vi.spyOn(chrome.tabs,'get').mockResolvedValue({id:7,url:'chrome-extension://test-extension/src/dashboard/index.html'} as any);
+ Object.assign(chrome.runtime,{sendMessage:vi.fn(async()=>({opened:true}))});action({id:7});
+ await vi.waitFor(()=>expect(chrome.runtime.sendMessage).toHaveBeenCalledWith({type:'OPEN_SETTINGS_PAGE',tabId:7}));expect(chrome.runtime.openOptionsPage).not.toHaveBeenCalled();expect(chrome.tabs.create).not.toHaveBeenCalled();
+});

@@ -1,3 +1,4 @@
+import {openExistingSettingsPage} from '../shared/settings-page-events';
 import {t} from '../shared/i18n';
 const PREFIX='xpf_editor:';
 export function isXPage(value?:string){try{const u=new URL(value||'');return u.protocol==='https:'&&['x.com','twitter.com'].includes(u.hostname);}catch{return false;}}
@@ -6,6 +7,7 @@ export class EditorHost{
  private opening=new Map<number,Promise<void>>();
  async open(tabId?:number){
   const tab=tabId===undefined?(await chrome.tabs.query({active:true,currentWindow:true}))[0]:await chrome.tabs.get(tabId);
+  if(tab&&await openExistingSettingsPage(tab))return;
   if(tab?.id===undefined||!isXPage(tab.url)){await chrome.runtime.openOptionsPage();return;}
   const id=tab.id,previous=this.opening.get(id)||Promise.resolve();
   const next=previous.catch(()=>{}).then(async()=>{
