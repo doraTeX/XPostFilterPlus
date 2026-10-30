@@ -1,6 +1,6 @@
 # OpenAI Decisions の設定方法
 
-XPostFilterPlusでOpenAI DecisionsのAI判定を使うには、OpenAI APIキーと、APIを利用できる請求設定を用意します。
+X Post Filter PlusでOpenAI DecisionsのAI判定を使うには、OpenAI APIキーと、APIを利用できる請求設定を用意します。
 
 ## 1. OpenAI Platformにログインする
 
@@ -16,7 +16,7 @@ APIの利用料金はOpenAIとの契約に従います。利用状況は「Usage
 
 1. [API keys](https://platform.openai.com/api-keys)を開きます。
 2. 「Create new secret key」を選びます。
-3. 名前を `XPostFilterPlus` などにして、利用するプロジェクトを指定します。
+3. 名前を `X Post Filter Plus` などにして、利用するプロジェクトを指定します。
 4. Permissionsは「All」を選んでキーを作成します。
 5. 表示された `sk-` から始まるキー全文をコピーして保存します。
 
@@ -24,7 +24,7 @@ APIの利用料金はOpenAIとの契約に従います。利用状況は「Usage
 
 ## 4. 拡張に入力する
 
-1. XPostFilterPlusの設定を開き、「AIによる除外判定」の「AI判定を利用」をオンにします。
+1. X Post Filter Plusの設定を開き、「AIによる除外判定」の「AI判定を利用」をオンにします。
 2. 「利用するAI」の接続先に **OpenAI Decisions** を選びます。
 3. 「OpenAI APIキー」欄にキー全文を入力します。
 4. 「この接続先への通信を許可」を押し、Chromeの確認画面で許可します。
@@ -49,4 +49,4 @@ APIの利用料金はOpenAIとの契約に従います。利用状況は「Usage
 - [OpenAI公式：Decisions](https://developers.openai.com/api/docs/guides/decisions)
 - [本拡張のプライバシーポリシー](PRIVACY_POLICY.ja.md)
 
-Y!News Filter Plusの実機確認済み設定手順を、XPostFilterPlusの入力欄に合わせて記載しています。
+Y!News Filter Plusの実機確認済み設定手順を、X Post Filter Plusの入力欄に合わせて記載しています。

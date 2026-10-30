@@ -1,7 +1,7 @@
 # Set up Jev
 
 1. Sign in to the [TypeSafe AI console](https://console.typesafe.ai/keys) and create or copy an active API key.
-2. Open XPostFilterPlus settings, expand **AI exclusion classification**, and turn on **Use AI classification**.
+2. Open X Post Filter Plus settings, expand **AI exclusion classification**, and turn on **Use AI classification**.
 3. Under **AI provider**, select **Jev** and enter the key.
 4. Select **Allow connections to this provider** and approve Chrome's request.
 5. Enter one exclusion condition per line. Settings save automatically, and the key is checked with a minimal request.

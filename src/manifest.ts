@@ -1,6 +1,6 @@
 import {defineManifest} from '@crxjs/vite-plugin';
 export default defineManifest({
- manifest_version:3,name:'__MSG_extName__',version:'0.1.0',default_locale:'en',
+ manifest_version:3,name:'__MSG_extName__',version:'0.1.1',default_locale:'en',
  description:'__MSG_extDescription__',
  homepage_url:'https://github.com/doraTeX/XPostFilterPlus',
  minimum_chrome_version:'110',

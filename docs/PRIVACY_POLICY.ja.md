@@ -1,4 +1,4 @@
-# XPostFilterPlus プライバシーポリシー
+# X Post Filter Plus プライバシーポリシー
 
 ## 読み取る内容
 

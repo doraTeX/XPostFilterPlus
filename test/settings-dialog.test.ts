@@ -13,7 +13,7 @@ it('元のページを残し、一つのモーダルに設定フレームを重�
  expect(editor.open(url)).toEqual({opened:true});const host=document.getElementById('xpf-settings-host')!,root=host.shadowRoot!;
  expect(root.querySelector('dialog')!.open).toBe(true);expect(root.querySelector('iframe')!.src).toBe(url);
  editor.open(url);expect(document.querySelectorAll('#xpf-settings-host')).toHaveLength(1);expect(document.querySelector('main')!.textContent).toBe('元のタイムライン');
- expect(root.querySelector('iframe')!.title).toContain('XPostFilterPlus');expect(editor.close('wrong')).toEqual({closed:false});
+ expect(root.querySelector('iframe')!.title).toContain('X Post Filter Plus');expect(editor.close('wrong')).toEqual({closed:false});
  editor.close('test-token');expect(document.getElementById('xpf-settings-host')).toBeNull();expect(document.querySelector('main')).not.toBeNull();
 });
 it('Escでは即座に消さず、設定フレームへ保存して閉じる要求を送る',()=>{

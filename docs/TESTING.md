@@ -2,7 +2,7 @@
 
 ## Automated checks
 
-The X extension has 245 passing tests covering extraction, DOM reuse, routing, temporary overrides, tooltip controls, spinner state, token accounting, provider requests, caches, key verification, error scopes, settings persistence, sync conflicts, bilingual UI, safe report rendering, and report filters.
+The X extension has 270 passing tests covering extraction, DOM reuse, routing, temporary overrides, tooltip controls, spinner state, token accounting, provider requests, caches, key verification, error scopes, settings persistence, sync conflicts, bilingual UI, safe report rendering, and report filters.
 
 `npm run check:i18n` verifies the English and Japanese catalogs and placeholders. `npm run build:extension` checks TypeScript and creates the unpacked extension. Packaging verifies manifest identity and scans for unintended local paths or unrelated endpoints.
 
@@ -139,3 +139,16 @@ Rows retain at most the first 1,000 characters. Full text is stored once per pos
 245 tests across 18 files pass, including ten-condition long posts with AI off, requests pending, fresh results, cached results, shared results, and keyword filtering. Assertions check a single serialized full-text copy per post, full-text search and count updates, safe expansion, and preservation of the absence of a submission record in Japanese and English. English/Japanese catalogs still match at 365 keys. TypeScript, extension build, and packaging pass.
 
 Chrome local preview at /preview/report.html?lang=ja&long=1 confirmed two matching condition rows for a term beyond the displayed prefix, full text in expanded details, and the unchanged “No submitted text recorded” state. No live provider requests were made. Y audit at HEAD 1a4acaa reports no new findings; no Y source change is required.
+
+
+## Default-on Chrome sync — 2026-10-30
+
+For a profile without xpf_sync_state, sync now starts enabled with a checking status. Existing saved true/false values are unchanged. Mocked tests cover automatic first synchronization of local edits, importing another device's settings without a manual enable action, preservation of both saved preferences after store recreation, exclusion of credentials/caches, and the startup alarm. The existing paused-sync test explicitly disables sync before checking that nothing is sent. All 250 tests across 18 files, English/Japanese catalog checks, TypeScript, the extension build, and ZIP packaging pass. UI hints, README, privacy policy, and store copy are updated in both languages. These checks do not connect to real Chrome sync or use multiple physical devices.
+
+## Conflict source tags and standalone toolbar — 2026-10-30
+
+All 268 tests across 19 files pass. Mocked tests cover Local/Cloud attribution by version, preserved attribution after local edits and store recreation, legacy state, conflicts without a local candidate, and resolution when candidate enumeration order changes. Updated candidate versions still prevent stale resolution. Toolbar routing targets only the active standalone settings tab; other tabs and embedded settings are ignored. Dashboard tests cover reopening the existing dialog and listener cleanup. Chrome previews confirmed Japanese and English source tags with sample conflict data; this was not a multi-device sync test or a test of the installed extension toolbar.
+
+## Version 0.1.1 — 2026-10-30
+
+The display name is X Post Filter Plus in both locales, settings, toolbar titles, guides and store copy. Both localized names and the manifest/package version are checked during packaging. Conflict choices now use separate cards, numbered adoption buttons and scrollable JSON with syntax highlighting. JSON rendering preserves the original text and renders HTML-like settings as text. All 270 tests across 20 files, bilingual resources, TypeScript, the extension build and ZIP packaging pass.

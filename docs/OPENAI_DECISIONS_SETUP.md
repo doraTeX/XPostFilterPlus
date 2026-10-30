@@ -3,7 +3,7 @@
 1. Sign in to [OpenAI Platform](https://platform.openai.com/) and select the organization and project you intend to use.
 2. Check the project's API access, billing, and available credit.
 3. Create or copy an active [OpenAI API key](https://platform.openai.com/api-keys).
-4. In XPostFilterPlus settings, enable **Use AI classification** and select **OpenAI Decisions**.
+4. In X Post Filter Plus settings, enable **Use AI classification** and select **OpenAI Decisions**.
 5. Enter the key, select **Allow connections to this provider**, and grant Chrome's permission request.
 6. Add one exclusion condition per line and return to X.
 

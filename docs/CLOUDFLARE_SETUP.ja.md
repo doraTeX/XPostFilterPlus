@@ -1,6 +1,6 @@
 # Cloudflare Clef の設定方法
 
-XPostFilterPlusでCloudflareのAI判定を使うには、Cloudflareの「アカウントID」と、Workers AIにアクセスできる「APIトークン」を用意します。
+X Post Filter PlusでCloudflareのAI判定を使うには、Cloudflareの「アカウントID」と、Workers AIにアクセスできる「APIトークン」を用意します。
 
 ## 1. Cloudflareでアカウントを用意する
 
@@ -22,7 +22,7 @@ XPostFilterPlusでCloudflareのAI判定を使うには、Cloudflareの「アカ�
 ## 3. APIトークンを作成する
 
 1. 「Create a Workers AI API Token」を選びます。
-2. トークン名は、用途が分かるように `XPostFilterPlus` などにします。
+2. トークン名は、用途が分かるように `X Post Filter Plus` などにします。
 3. 権限に次の2つがあることを確認します。
    - アカウント → Workers AI → 読み取り（Read）
    - アカウント → Workers AI → 編集（Edit）
@@ -33,7 +33,7 @@ XPostFilterPlusでCloudflareのAI判定を使うには、Cloudflareの「アカ�
 
 ## 4. 拡張に入力する
 
-1. XPostFilterPlusの設定を開き、「AIによる除外判定」の「AI判定を利用」をオンにします。
+1. X Post Filter Plusの設定を開き、「AIによる除外判定」の「AI判定を利用」をオンにします。
 2. 「利用するAI」の接続先に **Cloudflare Clef / Clef-flash** を選びます。
 3. APIトークン欄に手順3のトークンを入力します。
 4. 「CloudflareアカウントID」に同じアカウントのAccount IDを入力します。
@@ -59,4 +59,4 @@ AI判定を有効にすると、ポスト本文と判定条件をCloudflareへ�
 - [Cloudflare公式：Workers AI料金](https://developers.cloudflare.com/workers-ai/platform/pricing/)
 - [本拡張のプライバシーポリシー](PRIVACY_POLICY.ja.md)
 
-Y!News Filter Plusの実機確認済み設定手順を、XPostFilterPlusの入力欄に合わせて記載しています。
+Y!News Filter Plusの実機確認済み設定手順を、X Post Filter Plusの入力欄に合わせて記載しています。

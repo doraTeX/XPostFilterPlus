@@ -2,7 +2,7 @@ import {t} from '../shared/i18n';
 // 設定専用ページでも、入口を残して保存後にダイアログだけを閉じる。
 export function createSettingsPage(root:HTMLElement,requestClose:()=>Promise<unknown>,focus:()=>void){
  const page=document.createElement('section');page.className='settings-page';
- const title=document.createElement('h1');title.textContent='XPostFilterPlus';page.append(title);
+ const title=document.createElement('h1');title.textContent=t('extName');page.append(title);
  for(const key of ['settingsPageAutosave','settingsPageCredentials']){const p=document.createElement('p');p.textContent=t(key);page.append(p);}
  const actions=document.createElement('div');actions.className='settings-page-actions';page.append(actions);
  const openButton=document.createElement('button');openButton.type='button';openButton.textContent=t('settingsPageOpen');actions.append(openButton);

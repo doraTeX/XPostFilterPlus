@@ -92,7 +92,7 @@
     "message": "一時的に全件表示"
   },
   "m_f45dc03eddbc": {
-    "message": "XPostFilterPlus：ページを再読み込み"
+    "message": "X Post Filter Plus：ページを再読み込み"
   },
   "m_7a6e880456df": {
     "message": "拡張が更新されました。このページを再読み込みしてください。"
@@ -186,7 +186,7 @@
     }
   },
   "m_ed3b8993c96e": {
-    "message": "XPostFilterPlus の設定と一時解除"
+    "message": "X Post Filter Plus の設定と一時解除"
   },
   "m_c0c94acdd972": {
     "message": " 解除中"
@@ -985,13 +985,13 @@
     "message": "設定ダッシュボード"
   },
   "extName": {
-    "message": "XPostFilterPlus"
+    "message": "X Post Filter Plus"
   },
   "extDescription": {
     "message": "X（旧Twitter）のポストをキーワードやAIの意味判定で非表示にする非公式拡張です。Jev、OpenAI Decisions、Cloudflare Clef対応。"
   },
   "actionTitle": {
-    "message": "XPostFilterPlus 設定"
+    "message": "X Post Filter Plus 設定"
   },
   "reportTitle": {
     "message": "AI判定詳細"
@@ -1020,10 +1020,10 @@
     }
   },
   "chipTitle": {
-    "message": "XPostFilterPlus の設定を開く"
+    "message": "X Post Filter Plus の設定を開く"
   },
   "chipLabel": {
-    "message": "XPostFilterPlus: $N$。設定を開く",
+    "message": "X Post Filter Plus: $N$。設定を開く",
     "placeholders": {
       "n": {
         "content": "$1"

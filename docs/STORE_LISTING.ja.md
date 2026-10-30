@@ -1,4 +1,4 @@
-# XPostFilterPlus
+# X Post Filter Plus
 
 XのポストをキーワードとAIで非表示にする非公式拡張です。X社とは無関係です。
 

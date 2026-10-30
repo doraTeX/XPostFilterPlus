@@ -1,14 +1,14 @@
-# XPostFilterPlus
+# X Post Filter Plus
 
 [日本語](README.ja.md)
 
-An unofficial Chrome extension that hides X posts using keyword matching and AI semantic classification. Version 0.1.0. Not affiliated with X Corp.
+An unofficial Chrome extension that hides X posts using keyword matching and AI semantic classification. Version 0.1.1. Not affiliated with X Corp.
 
 ## Install
 
 1. Open `chrome://extensions` and enable Developer mode.
 2. Select **Load unpacked**, then choose this project's **dist** folder.
-3. Reload X. Open settings from the extension icon or the hidden-post count chip. Settings appear as a modal dialog over the current X page. If the extension is not yet running in that tab, settings open in a separate tab with instructions to reload the original X page. The standalone page includes an Open settings button and an Open X link; closing its settings dialog keeps that page open.
+3. Reload X. Open settings from the extension icon or the hidden-post count chip. Settings appear as a modal dialog over the current X page. If the extension is not yet running in that tab, settings open in a separate tab with instructions to reload the original X page. The standalone page includes an Open settings button and an Open X link; closing its settings dialog keeps that page open. The toolbar extension icon reopens the dialog in that same standalone tab.
 
 After rebuilding, reload both the extension and the X page.
 
@@ -43,7 +43,7 @@ npm run package
 
 `dist` is the unpacked extension; distribution ZIPs are in `release`. `npm run preview` serves a mock settings UI at `http://127.0.0.1:4178/preview/index.html`. Add `?lang=en` for English or `?lang=ja` for Japanese. Add `&state=unset` to inspect the unconfigured state.
 
-Chrome sync uses the `alarms` permission to retry failed synchronization and check for changes every five minutes while enabled. AI decision caches are separated by provider, model, post text, and the actual localized instructions.
+Chrome sync is on by default for profiles without a saved sync preference. Existing on/off preferences are preserved. Conflict choices are tagged Local or Cloud to identify their source. It requires Chrome sync to be enabled with the same Google account and can be turned off in settings. API keys and decision caches are not synced. Chrome sync uses the `alarms` permission to retry failed synchronization and check for changes every five minutes while enabled. AI decision caches are separated by provider, model, post text, and the actual localized instructions.
 
 English and Japanese resources must be developed together. `npm run check:i18n` verifies keys and placeholders in both catalogs. UI behavior and styles reuse Y!News Filter Plus; Chrome localization follows RakuFill.
 

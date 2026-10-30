@@ -92,7 +92,7 @@
     "message": "Temporarily show all"
   },
   "m_f45dc03eddbc": {
-    "message": "XPostFilterPlus: reload this page"
+    "message": "X Post Filter Plus: reload this page"
   },
   "m_7a6e880456df": {
     "message": "The extension was updated. Please reload this page."
@@ -186,7 +186,7 @@
     }
   },
   "m_ed3b8993c96e": {
-    "message": "XPostFilterPlus settings and temporary overrides"
+    "message": "X Post Filter Plus settings and temporary overrides"
   },
   "m_c0c94acdd972": {
     "message": " temporarily disabled"
@@ -985,13 +985,13 @@
     "message": "Settings dashboard"
   },
   "extName": {
-    "message": "XPostFilterPlus"
+    "message": "X Post Filter Plus"
   },
   "extDescription": {
     "message": "Unofficial extension to hide X (formerly Twitter) posts with keywords and AI. Supports Jev, OpenAI Decisions, and Cloudflare Clef."
   },
   "actionTitle": {
-    "message": "XPostFilterPlus settings"
+    "message": "X Post Filter Plus settings"
   },
   "reportTitle": {
     "message": "AI decision details"
@@ -1020,10 +1020,10 @@
     }
   },
   "chipTitle": {
-    "message": "Open XPostFilterPlus settings"
+    "message": "Open X Post Filter Plus settings"
   },
   "chipLabel": {
-    "message": "XPostFilterPlus: $N$. Open settings",
+    "message": "X Post Filter Plus: $N$. Open settings",
     "placeholders": {
       "n": {
         "content": "$1"

@@ -1,4 +1,4 @@
-# XPostFilterPlus
+# X Post Filter Plus
 
 An unofficial extension for hiding X (formerly Twitter) posts with keywords and AI. Not affiliated with X Corp.
 

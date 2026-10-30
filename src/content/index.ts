@@ -31,4 +31,4 @@ async function launch(){
   filterHandler=fn;fn({type:'SETTINGS_VISIBILITY',visible:settingsOpen});return ()=>{if(filterHandler===fn)filterHandler=undefined;};
  }});
 }
-void launch().catch(error=>{if(!isDisconnectedError(error))console.error('XPostFilterPlus:',error.message);});
+void launch().catch(error=>{if(!isDisconnectedError(error))console.error('X Post Filter Plus:',error.message);});

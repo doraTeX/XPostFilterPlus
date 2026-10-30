@@ -1,6 +1,6 @@
 # Jev の設定方法
 
-XPostFilterPlusでJevのAI判定を使うには、TypeSafe AIのAPIキーを用意します。
+X Post Filter PlusでJevのAI判定を使うには、TypeSafe AIのAPIキーを用意します。
 
 ## 1. TypeSafe AIにログインする
 
@@ -14,7 +14,7 @@ APIの利用料金はTypeSafe AIとの契約に従います。コンソールで
 
 ## 3. 拡張に入力する
 
-1. XPostFilterPlusの設定を開き、「AIによる除外判定」の「AI判定を利用」をオンにします。
+1. X Post Filter Plusの設定を開き、「AIによる除外判定」の「AI判定を利用」をオンにします。
 2. 「利用するAI」の接続先に **Jev** を選びます。
 3. 「Jev APIキー」欄に取得したキーを入力します。
 4. 「この接続先への通信を許可」を押し、Chromeの確認画面で許可します。
@@ -39,4 +39,4 @@ APIの利用料金はTypeSafe AIとの契約に従います。コンソールで
 - [TypeSafe公式：エラーと利用制限](https://docs.typesafe.ai/api/errors)
 - [本拡張のプライバシーポリシー](PRIVACY_POLICY.ja.md)
 
-Y!News Filter Plusの実機確認済み設定手順を、XPostFilterPlusの入力欄に合わせて記載しています。
+Y!News Filter Plusの実機確認済み設定手順を、X Post Filter Plusの入力欄に合わせて記載しています。

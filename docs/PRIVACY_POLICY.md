@@ -1,4 +1,4 @@
-# XPostFilterPlus privacy policy
+# X Post Filter Plus privacy policy
 
 The extension reads displayed post text, post identifiers, and author account handles to track posts on X. Author handles are used for profile links in decision reports and are not added to AI requests. Keyword matching takes place on your device.
 

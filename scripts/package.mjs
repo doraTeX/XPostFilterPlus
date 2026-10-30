@@ -6,7 +6,8 @@ const pkg=JSON.parse(readFileSync('package.json','utf8'));
 const dist=resolve(process.argv[2]||'dist'),release=resolve('release');mkdirSync(release,{recursive:true});
 const zip=join(release,`xpost-filter-plus-${pkg.version}.zip`);
 const manifest=JSON.parse(readFileSync(join(dist,'manifest.json'),'utf8'));
-if(!['XPostFilterPlus','__MSG_extName__'].includes(manifest.name)||manifest.version!==pkg.version)throw Error('名前・バージョンが一致しません');
+if(!['X Post Filter Plus','__MSG_extName__'].includes(manifest.name)||manifest.version!==pkg.version)throw Error('名前・バージョンが一致しません');
+for(const locale of ['en','ja']){const messages=JSON.parse(readFileSync(join(dist,'_locales',locale,'messages.json'),'utf8'));if(messages.extName?.message!=='X Post Filter Plus')throw Error('表示名が一致しません: '+locale);}
 function walk(dir){return readdirSync(dir).flatMap(n=>{const f=join(dir,n);return statSync(f).isDirectory()?walk(f):[f];});}
 for(const f of walk(dist)){
  if(!/\.(?:js|html|json|txt)$/.test(f))continue;
